@@ -4,7 +4,7 @@
 
 Generate personalised induction scripts with AI, hear them narrated by the browser's text-to-speech engine, and experience guided sessions with procedural soundscapes, 16 hypnotic visual effects, and real-time customisation — all running locally in your browser with zero server dependencies.
 
-Built for [Perchance.org](https://perchance.org). No accounts. No downloads. No data leaves your device.
+Built for [Perchance.org/hypnosis-script-generator](https://perchance.org/hypnosis-script-generator). No accounts. No downloads. No data leaves your device.
 
 ---
 
@@ -144,11 +144,9 @@ Built for [Perchance.org](https://perchance.org). No accounts. No downloads. No 
 
 This is a Perchance generator — no installation required.
 
-1. Visit the generator page on Perchance.org
+1. Visit the generator page at [Perchance.org/hypnosis-script-generator](https://perchance.org/hypnosis-script-generator)
 2. The tool runs entirely in your browser
 3. All data is stored locally in IndexedDB
-
-To self-host or fork: copy the single HTML file into a Perchance generator's HTML panel, or serve it as a standalone HTML file.
 
 ---
 
