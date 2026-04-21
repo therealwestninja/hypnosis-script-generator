@@ -792,7 +792,9 @@ body.in-session .footer {
       <div class="field-group">
         <label class="field-label">session length</label>
         <select id="lengthSelect">
-          <option value="short">Short (~12 min) — quick reset</option>
+          <option value="micro">Micro (~2 min) — quick relief booster</option>
+          <option value="quick">Quick (~5 min) — focused reset</option>
+          <option value="short">Short (~12 min) — standard</option>
           <option value="medium" selected>Medium (~20 min) — recommended</option>
           <option value="long">Long (~30 min) — deepest</option>
         </select>
@@ -800,12 +802,26 @@ body.in-session .footer {
       </div>
 
       <div class="field-group">
-        <label class="field-label">audio</label>
-        <div class="toggle-row">
-          <label for="droneToggle" id="droneLabel">Ambient drone<span class="hint" id="droneHint">Synthesized low ambient tone. Use headphones.</span></label>
-          <input type="checkbox" id="droneToggle">
-        </div>
-        <div class="toggle-row"><label for="droneVolume">Drone volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"></div>
+        <label class="field-label">soundscape</label>
+        <select id="soundscapeSelect">
+          <option value="none">None — voice only</option>
+          <option value="drone" selected>Engine drone — low hum, road-noise feel</option>
+          <option value="rain">Rain — droplets, soft rumble</option>
+          <option value="ocean">Ocean waves — slow, rhythmic surf</option>
+          <option value="fire">Crackling fire — warmth, pops</option>
+          <option value="bowls">Singing bowls — periodic resonant strikes</option>
+          <option value="heartbeat">Heartbeat — steady lub-dub rhythm</option>
+          <option value="binaural">Binaural beats (θ 6Hz) — requires headphones</option>
+          <option value="pink">Pink noise — soft, even hiss</option>
+          <option value="brown">Brown noise — deep, warm rumble</option>
+          <option value="white">White noise — full-spectrum static</option>
+        </select>
+        <div class="sublabel" id="soundscapeHint">Procedurally generated — never loops. Use headphones for binaural.</div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">audio levels</label>
+        <div class="toggle-row"><label for="droneVolume">Soundscape volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"></div>
         <div class="toggle-row"><label for="speechRate">Voice speed<span class="hint" id="speechRateHint">Slower is more hypnotic.</span></label><input type="range" id="speechRate" min="50" max="100" value="65"></div>
       </div>
 
@@ -1054,7 +1070,7 @@ body.in-session .footer {
     { id: 'confusion', name: 'Confusion Method', tagline: 'Overload analytical mind with paradoxes.', tags: ['analytical', 'resistant'], category: 'therapeutic', detail: 'Long sentences with embedded clauses, deliberate paradoxes, time distortion. The conscious mind tries to track and fails. When it gives up, trance happens by relief.', visual: 'vortex', drone: true, pacing: 'confusion' },
     { id: 'fractionation', name: 'Fractionation', tagline: 'Induce, alert, re-induce. Each cycle deeper.', tags: ['skeptical'], category: 'therapeutic', detail: 'Light trance → alert → re-induce — each cycle deeper than the last. Good for doubters because you verify "alert" between cycles.', visual: 'pulse', drone: false, pacing: 'fractionation' },
     { id: 'eye-roll', name: 'Eye-Roll (Spiegel)', tagline: 'Look up, eyes roll back. Fastest induction.', tags: ['rapid', 'physical'], category: 'therapeutic', detail: 'Spiegel method. Look up as high as possible, slowly close eyelids while keeping eyes rolled up. Physical strain triggers a state shift in seconds.', visual: 'pulse', drone: false, pacing: 'eye-roll' },
-    { id: 'breath-478', name: '4-7-8 Breath', tagline: 'Pure physiology. Parasympathetic activation.', tags: ['anxiety', 'sleep'], category: 'therapeutic', detail: 'Inhale 4 counts, hold 7, exhale 8. The extended exhale activates the vagus nerve. Body shifts state regardless of mental cooperation.', visual: 'pulse', drone: false, pacing: 'breath' },
+    { id: 'breath-478', name: '4-7-8 Breath', tagline: 'Pure physiology. Parasympathetic activation.', tags: ['anxiety', 'sleep'], category: 'therapeutic', detail: 'Inhale 4 counts, hold 7, exhale 8. The extended exhale activates the vagus nerve. Body shifts state regardless of mental cooperation.', visual: 'breathing', drone: false, pacing: 'breath' },
     { id: 'progressive', name: 'Progressive Relaxation', tagline: 'Body scan, head to toe. Best for sleep.', tags: ['sleep', 'somatic'], category: 'therapeutic', detail: 'Systematic relaxation of each muscle group from forehead to feet. Classic Jacobson method.', visual: 'colorwash', drone: false, pacing: 'body-scan' },
     { id: 'ericksonian', name: 'Ericksonian Conversational', tagline: 'Permissive language patterns. Open form.', tags: ['verbal'], category: 'therapeutic', detail: 'Indirect suggestions, presupposition, embedded commands, the yes-set. Most flexible approach — no fixed structure, just skilled language patterns.', visual: 'mandala', drone: false, pacing: 'permissive' },
     { id: 'magnetic-hands', name: 'Magnetic Hands', tagline: 'Fingers draw together on their own. Classic bar opener.', tags: ['demonstration', 'convincer', 'beginner'], category: 'demonstration', detail: 'Stage-hypnosis classic. Interlace fingers, palms pressed together, extend index fingers pointing up with a small gap between them. Suggestion that the fingers are drawing together produces ideomotor movement — they actually touch on their own.', visual: 'pulse', drone: false, pacing: 'focused' },
@@ -1188,6 +1204,7 @@ body.in-session .footer {
     fullScript: null,
     parsedScript: null,
     droneEnabled: true,
+    soundscape: 'drone',
     length: 'medium',
     voice: null,
     speechRate: 0.65,
@@ -1200,6 +1217,8 @@ body.in-session .footer {
   };
  
   const PHASE_DURATIONS = {
+    micro:  { settling: 15,  induction: 30,  deepener: 15,  work: 60,  emergence: 30 },
+    quick:  { settling: 30,  induction: 90,  deepener: 30,  work: 120, emergence: 45 },
     short:  { settling: 60,  induction: 180, deepener: 60,  work: 240, emergence: 60 },
     medium: { settling: 90,  induction: 300, deepener: 180, work: 360, emergence: 90 },
     long:   { settling: 120, induction: 420, deepener: 300, work: 540, emergence: 90 },
@@ -1364,8 +1383,11 @@ body.in-session .footer {
       card.innerHTML = `<div class="card-name">${escapeHtml(m.name)}${m.recommended ? `<span class="card-badge">recommended</span>` : ''}</div><div class="card-tagline">${escapeHtml(m.tagline)}</div><div class="card-tags">${m.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
       card.addEventListener('click', () => {
         state.selectedMethodId = m.id;
-        document.getElementById('droneToggle').checked = m.drone;
+        // Update soundscape default when method changes
+        state.soundscape = m.drone ? 'drone' : 'none';
         state.droneEnabled = m.drone;
+        const ssSelect = document.getElementById('soundscapeSelect');
+        if (ssSelect) ssSelect.value = state.soundscape;
         renderMethodGrid(); renderMethodDetail(); hideScript(); updateStepUI();
       });
       grid.appendChild(card);
@@ -1445,20 +1467,24 @@ body.in-session .footer {
         </div>
       </div>`;
 
-    // Dynamic drone label
-    const droneLabel = document.getElementById('droneLabel');
-    const droneHint = document.getElementById('droneHint');
-    if (droneLabel && droneHint) {
-      if (m.id === 'highway') {
-        droneLabel.childNodes[0].textContent = 'Engine drone';
-        droneHint.textContent = 'Highway motor hum. Use headphones.';
-      } else if (m.drone) {
-        droneLabel.childNodes[0].textContent = 'Ambient drone';
-        droneHint.textContent = 'Low-frequency tone that deepens with each phase. Use headphones.';
-      } else {
-        droneLabel.childNodes[0].textContent = 'Ambient drone';
-        droneHint.textContent = 'Not typically used with this method, but available. Use headphones.';
+    // Auto-select recommended soundscape based on method
+    const ssSelect = document.getElementById('soundscapeSelect');
+    const ssHint = document.getElementById('soundscapeHint');
+    if (ssSelect && ssHint) {
+      // Recommend a soundscape based on method
+      const recommendations = {
+        highway: 'drone', spiral: 'drone', confusion: 'drone',
+        'breath-478': 'none', progressive: 'ocean', ericksonian: 'rain',
+        'heartbeat-sync': 'heartbeat', 'floating-body': 'binaural',
+        'time-distortion': 'binaural', somnambulism: 'binaural',
+        'double-induction': 'brown',
+      };
+      const rec = recommendations[m.id];
+      if (rec && ssSelect.value === state.soundscape) {
+        ssSelect.value = rec; state.soundscape = rec; state.droneEnabled = rec !== 'none';
       }
+      if (m.drone) ssHint.textContent = `Recommended for ${escapeHtml(m.name)}. Procedurally generated — never loops.`;
+      else ssHint.textContent = 'Optional. Procedurally generated — never loops. Use headphones for binaural.';
     }
 
     // Speed hint based on method category
@@ -1508,60 +1534,187 @@ body.in-session .footer {
     const voices = speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     select.innerHTML = '';
-    voices.filter(v => v.lang.startsWith('en')).sort((a, b) => {
-      const score = v => { let s = 0; if (/male/i.test(v.name) && !/female/i.test(v.name)) s += 10; if (/uk|british|gb/i.test(v.name + v.lang)) s += 5; if (/google/i.test(v.name)) s += 3; if (/daniel|oliver|arthur|james/i.test(v.name)) s += 4; return -s; };
-      return score(a) - score(b);
-    }).forEach((v, i) => { const opt = document.createElement('option'); opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`; if (i === 0) opt.selected = true; select.appendChild(opt); });
+    // Quality scoring: neural/natural voices first, then Google, then local
+    const scored = voices.filter(v => v.lang.startsWith('en')).map(v => {
+      let s = 0;
+      const n = v.name + ' ' + v.lang;
+      if (/neural|natural|online/i.test(n)) s += 100;
+      if (/enhanced|premium/i.test(n)) s += 90;
+      if (/siri/i.test(n)) s += 85;
+      if (/google/i.test(n) && !v.localService) s += 50;
+      if (/male/i.test(n) && !/female/i.test(n)) s += 10;
+      if (/uk|british|gb/i.test(n)) s += 5;
+      if (/daniel|oliver|arthur|james|aaron/i.test(n)) s += 4;
+      if (/espeak|compact/i.test(n)) s -= 50;
+      if (v.localService) s += 2; // slight local preference for reliability
+      return { voice: v, score: s };
+    }).sort((a, b) => b.score - a.score);
+
+    scored.forEach((item, i) => {
+      const opt = document.createElement('option');
+      opt.value = item.voice.name;
+      const badge = item.score >= 90 ? ' ★' : item.score >= 50 ? ' ●' : '';
+      opt.textContent = `${item.voice.name} (${item.voice.lang})${badge}`;
+      if (i === 0) opt.selected = true;
+      select.appendChild(opt);
+    });
   }
   if (typeof speechSynthesis !== 'undefined') { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
   const getSelectedVoice = () => { const name = document.getElementById('voiceSelect').value; return speechSynthesis.getVoices().find(v => v.name === name) || null; };
  
-  class AudioDrone {
-    constructor() { this.ctx = null; this.master = null; this.nodes = []; this.running = false; }
-    async start(volume = 0.35) {
-      if (this.running) return;
+  // ====================================================================
+  // SOUNDSCAPE ENGINE — procedural ambient audio (replaces AudioDrone)
+  // Recipes from ROADMAP: rain, ocean, fire, bowls, heartbeat, binaural,
+  // white/pink/brown noise, plus the original engine drone.
+  // ====================================================================
+  class SoundscapeEngine {
+    constructor() { this.ctx = null; this.master = null; this.compressor = null; this.nodes = []; this.running = false; this.type = 'drone'; this._duckGain = null; }
+
+    async start(volume = 0.35, type = 'drone') {
+      if (this.running) await this.stop();
+      this.type = type;
       this.ctx = new (window.AudioContext || window.webkitAudioContext)();
       if (this.ctx.state === 'suspended') await this.ctx.resume();
-      this.master = this.ctx.createGain(); this.master.gain.value = 0; this.master.connect(this.ctx.destination);
-      const bass = this.ctx.createOscillator(); bass.type = 'sine'; bass.frequency.value = 70;
-      const bassGain = this.ctx.createGain(); bassGain.gain.value = 0.4; bass.connect(bassGain).connect(this.master); bass.start(); this.nodes.push(bass, bassGain);
-      const harm = this.ctx.createOscillator(); harm.type = 'sine'; harm.frequency.value = 141;
-      const harmGain = this.ctx.createGain(); harmGain.gain.value = 0.18; harm.connect(harmGain).connect(this.master); harm.start(); this.nodes.push(harm, harmGain);
-      const bufferSize = 2 * this.ctx.sampleRate;
-      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-      const data = noiseBuffer.getChannelData(0); let lastOut = 0;
-      for (let i = 0; i < bufferSize; i++) { const white = Math.random() * 2 - 1; data[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = data[i]; data[i] *= 3.5; }
-      const noise = this.ctx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
-      const nf = this.ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 280;
-      const ng = this.ctx.createGain(); ng.gain.value = 0.25;
-      noise.connect(nf).connect(ng).connect(this.master); noise.start(); this.nodes.push(noise, nf, ng);
-      const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.07;
-      const lg = this.ctx.createGain(); lg.gain.value = 0.08;
-      lfo.connect(lg).connect(bassGain.gain); lfo.start(); this.nodes.push(lfo, lg);
+
+      // Master chain: sceneGain → compressor → destination
+      this.compressor = this.ctx.createDynamicsCompressor();
+      this.compressor.threshold.value = -18; this.compressor.knee.value = 24;
+      this.compressor.ratio.value = 3; this.compressor.attack.value = 0.01; this.compressor.release.value = 0.25;
+      this.compressor.connect(this.ctx.destination);
+      this._duckGain = this.ctx.createGain(); this._duckGain.gain.value = 1.0;
+      this._duckGain.connect(this.compressor);
+      this.master = this.ctx.createGain(); this.master.gain.value = 0;
+      this.master.connect(this._duckGain);
+
+      const c = this.ctx, m = this.master, ns = this.nodes;
+      const mkNoise = (filterType, freq, q) => {
+        const buf = c.createBuffer(1, 2 * c.sampleRate, c.sampleRate);
+        const d = buf.getChannelData(0); let lo = 0;
+        for (let i = 0; i < d.length; i++) {
+          const w = Math.random() * 2 - 1;
+          if (filterType === 'brown') { d[i] = (lo + 0.02 * w) / 1.02; lo = d[i]; d[i] *= 3.5; }
+          else d[i] = w;
+        }
+        const src = c.createBufferSource(); src.buffer = buf; src.loop = true;
+        if (filterType !== 'white' && filterType !== 'brown') {
+          const f = c.createBiquadFilter(); f.type = filterType; f.frequency.value = freq || 1000; if (q) f.Q.value = q;
+          src.connect(f); ns.push(src, f); return f;
+        }
+        ns.push(src); return src;
+      };
+      const mkOsc = (freq, type = 'sine') => { const o = c.createOscillator(); o.type = type; o.frequency.value = freq; ns.push(o); return o; };
+      const mkGain = (v) => { const g = c.createGain(); g.gain.value = v; ns.push(g); return g; };
+      const connect = (...chain) => { for (let i = 0; i < chain.length - 1; i++) chain[i].connect(chain[i + 1]); };
+      const startAll = () => ns.forEach(n => { try { n.start && n.start(); } catch(e) {} });
+
+      if (type === 'drone') {
+        const bass = mkOsc(70); const bg = mkGain(0.4); connect(bass, bg, m);
+        const harm = mkOsc(141); const hg = mkGain(0.18); connect(harm, hg, m);
+        const noise = mkNoise('brown'); const ng = mkGain(0.25); const nf = c.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 280; ns.push(nf);
+        connect(noise, nf, ng, m);
+        const lfo = mkOsc(0.07); const lg = mkGain(0.08); connect(lfo, lg); lg.connect(bg.gain);
+      } else if (type === 'rain') {
+        const bed = mkNoise('bandpass', 1200, 0.8); const bg = mkGain(0.5); connect(bed, bg, m);
+        const rumble = mkNoise('brown'); const rf = c.createBiquadFilter(); rf.type = 'lowpass'; rf.frequency.value = 200; ns.push(rf);
+        const rg = mkGain(0.08); connect(rumble, rf, rg, m);
+        // Droplet scheduler
+        const droplet = () => { if (!this.running) return;
+          const osc = c.createOscillator(); osc.frequency.value = 2000 + Math.random() * 4000;
+          const g = c.createGain(); g.gain.value = 0; osc.connect(g).connect(m);
+          const t = c.currentTime; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.15 + Math.random() * 0.1, t + 0.005);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.02 + Math.random() * 0.015);
+          osc.start(t); osc.stop(t + 0.04);
+          setTimeout(droplet, 20 + Math.random() * 60);
+        };
+        setTimeout(droplet, 500);
+      } else if (type === 'ocean') {
+        const noise = mkNoise('bandpass', 650, 0.5); const ng = mkGain(0.45);
+        const lfo = mkOsc(1 / 11); const lg = mkGain(0.35); connect(lfo, lg); lg.connect(ng.gain);
+        connect(noise, ng, m);
+        const foam = mkNoise('bandpass', 3000, 1); const fg = mkGain(0.06); connect(foam, fg, m);
+      } else if (type === 'fire') {
+        const bed = mkNoise('brown'); const bg = mkGain(0.12);
+        const bf = c.createBiquadFilter(); bf.type = 'lowpass'; bf.frequency.value = 400; ns.push(bf);
+        connect(bed, bf, bg, m);
+        const crackle = () => { if (!this.running) return;
+          const b = c.createBuffer(1, Math.floor(c.sampleRate * 0.008), c.sampleRate); const d = b.getChannelData(0);
+          for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+          const s = c.createBufferSource(); s.buffer = b;
+          const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500 + Math.random() * 3000; f.Q.value = 2;
+          const g = c.createGain(); g.gain.value = 0.15 + Math.random() * 0.2;
+          s.connect(f).connect(g).connect(m); s.start();
+          setTimeout(crackle, 80 + Math.random() * 300);
+        };
+        setTimeout(crackle, 200);
+      } else if (type === 'bowls') {
+        const ratios = [1, 2.02, 3.07, 4.16, 5.38]; const decays = [10, 7, 5, 4, 3];
+        const strike = () => { if (!this.running) return;
+          const root = 180 + Math.random() * 60;
+          ratios.forEach((r, i) => {
+            const o = c.createOscillator(); o.frequency.value = root * r;
+            const g = c.createGain(); g.gain.value = 0.12 / (i + 1);
+            o.connect(g).connect(m); const t = c.currentTime;
+            g.gain.setValueAtTime(g.gain.value, t); g.gain.exponentialRampToValueAtTime(0.0001, t + decays[i]);
+            o.start(t); o.stop(t + decays[i] + 0.1);
+          });
+          setTimeout(strike, 8000 + Math.random() * 12000);
+        };
+        strike();
+      } else if (type === 'heartbeat') {
+        const beat = () => { if (!this.running) return;
+          [0, 0.14].forEach(delay => {
+            const o = c.createOscillator(); o.frequency.value = 55;
+            const g = c.createGain(); g.gain.value = 0;
+            const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 200;
+            o.connect(f).connect(g).connect(m); const t = c.currentTime + delay;
+            g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.5, t + 0.03);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + 0.25);
+            o.start(t); o.stop(t + 0.3);
+          });
+          setTimeout(beat, 1050 + Math.random() * 120);
+        };
+        beat();
+      } else if (type === 'binaural') {
+        const carrier = 200, beatHz = 6; // Theta range
+        const oL = mkOsc(carrier - beatHz / 2); const oR = mkOsc(carrier + beatHz / 2);
+        const gL = mkGain(0.3); const gR = mkGain(0.3);
+        const merger = c.createChannelMerger(2); ns.push(merger);
+        oL.connect(gL).connect(merger, 0, 0); oR.connect(gR).connect(merger, 0, 1);
+        merger.connect(m);
+      } else if (type === 'pink' || type === 'brown' || type === 'white') {
+        const noise = mkNoise(type === 'pink' ? 'lowpass' : type, type === 'pink' ? 800 : undefined);
+        const ng = mkGain(type === 'white' ? 0.15 : 0.35); connect(noise, ng, m);
+      }
+
+      startAll();
       this.master.gain.linearRampToValueAtTime(volume, this.ctx.currentTime + 4);
       this.running = true;
     }
-    setVolume(v) { if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(v, this.ctx.currentTime + 0.5); }
+
+    setVolume(v) { if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(Math.max(0, v), this.ctx.currentTime + 0.5); }
+
+    // Ducking: called from speakScript to lower ambience during narration
+    duck() { if (this._duckGain && this.ctx) this._duckGain.gain.linearRampToValueAtTime(0.2, this.ctx.currentTime + 0.4); }
+    unduck() { if (this._duckGain && this.ctx) this._duckGain.gain.linearRampToValueAtTime(1.0, this.ctx.currentTime + 0.8); }
+
     setPhaseFreq(phase) {
-      // Subtle frequency shift per phase to reinforce deepening
+      if (this.type !== 'drone' || !this.ctx) return;
       const freqMap = { settling: 70, induction: 67, deepener: 63, work: 60, emergence: 70 };
       const target = freqMap[phase] || 70;
-      if (this.ctx && this.nodes[0]?.frequency) {
-        this.nodes[0].frequency.linearRampToValueAtTime(target, this.ctx.currentTime + 4);
-        // Shift harmonic too
-        if (this.nodes[2]?.frequency) this.nodes[2].frequency.linearRampToValueAtTime(target * 2.01, this.ctx.currentTime + 4);
-      }
+      if (this.nodes[0]?.frequency) this.nodes[0].frequency.linearRampToValueAtTime(target, this.ctx.currentTime + 4);
+      if (this.nodes[2]?.frequency) this.nodes[2].frequency.linearRampToValueAtTime(target * 2.01, this.ctx.currentTime + 4);
     }
+
     async stop() {
       if (!this.running || !this.ctx) return;
       this.master.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 2);
       await new Promise(r => setTimeout(r, 2100));
-      this.nodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e) {} });
-      try { await this.ctx.close(); } catch(e) {}
-      this.ctx = null; this.master = null; this.nodes = []; this.running = false;
+      this.nodes.forEach(n => { try { n.stop?.(); n.disconnect?.(); } catch(e) {} });
+      try { this.ctx.suspend(); } catch(e) {}
+      this.ctx = null; this.master = null; this._duckGain = null; this.compressor = null; this.nodes = []; this.running = false;
     }
   }
-  const drone = new AudioDrone();
+  const drone = new SoundscapeEngine();
  
   let highwayRAF = null;
   let vizRAF = null;
@@ -1676,6 +1829,54 @@ body.in-session .footer {
     ctx.fillStyle = `rgba(${rgb},0.85)`; ctx.fill();
   }
 
+  // Breathing circle — the single most evidence-based hypnotic visual
+  function renderBreathingCircle(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, maxR = Math.min(W,H)*0.38, rgb = hexToRgb(color);
+    // 4-7-8 cycle: 4s inhale, 7s hold, 8s exhale = 19s total
+    const cycle = 19, phase = t % cycle;
+    let frac; // 0-1 breath position
+    if (phase < 4) frac = phase / 4; // inhale: expand
+    else if (phase < 11) frac = 1; // hold: full
+    else frac = 1 - (phase - 11) / 8; // exhale: contract
+    frac = frac * frac * (3 - 2 * frac); // smoothstep ease
+
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(0,0,W,H);
+    const r = maxR * 0.3 + maxR * 0.7 * frac;
+
+    // Concentric rings at phase offsets
+    for (let ring = 4; ring >= 0; ring--) {
+      const ringFrac = Math.max(0, Math.min(1, frac - ring * 0.04));
+      const rr = maxR * 0.3 + maxR * 0.7 * ringFrac * (3 - 2 * ringFrac);
+      const alpha = 0.08 + ring * 0.04;
+      // Color shift: cool blue inhale → warm amber exhale
+      const hue = 210 - frac * 30; // 210 (blue) → 180 (teal) at full
+      ctx.beginPath(); ctx.arc(cx, cy, rr, 0, Math.PI*2);
+      ctx.strokeStyle = `hsla(${hue}, 50%, 60%, ${alpha})`; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+
+    // Main circle
+    const mainHue = 210 - frac * 40;
+    const grad = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r);
+    grad.addColorStop(0, `hsla(${mainHue}, 55%, 55%, 0.35)`);
+    grad.addColorStop(1, `hsla(${mainHue}, 45%, 40%, 0.08)`);
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = `hsla(${mainHue}, 50%, 60%, 0.5)`; ctx.lineWidth = 2; ctx.stroke();
+
+    // Label
+    let label = '';
+    if (phase < 4) label = 'breathe in';
+    else if (phase < 11) label = 'hold';
+    else label = 'breathe out';
+    ctx.fillStyle = `hsla(${mainHue}, 40%, 70%, 0.6)`;
+    ctx.font = '0.8rem -apple-system, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(label, cx, cy + r + 24);
+
+    // Center dot
+    ctx.beginPath(); ctx.arc(cx, cy, 4 + 2 * frac, 0, Math.PI*2);
+    ctx.fillStyle = `hsla(${mainHue}, 50%, 70%, 0.8)`; ctx.fill();
+  }
+
   const VIZ_RENDERERS = {
     tunnel: renderTunnel,
     'pendulum-viz': renderPendulumViz,
@@ -1684,6 +1885,7 @@ body.in-session .footer {
     lissajous: renderLissajous,
     colorwash: renderColorWash,
     'canvas-pulse': renderCanvasPulse,
+    breathing: renderBreathingCircle,
   };
 
   // Phase-based speed multipliers for visuals
@@ -2147,12 +2349,43 @@ Begin:`;
     document.querySelectorAll('.phase-dot').forEach(d => { d.classList.remove('active','done'); });
 
     setupVisual(method.visual);
-    if (state.droneEnabled) {
+
+    // Start soundscape (replaces old drone toggle)
+    if (state.soundscape && state.soundscape !== 'none') {
       try {
-        await drone.start(state.droneVolume);
-        document.getElementById('audioIndicator').textContent = '· drone ·';
+        await drone.start(state.droneVolume, state.soundscape);
+        document.getElementById('audioIndicator').textContent = '· ' + state.soundscape + ' ·';
       } catch(e) {
-        notify.info('Audio drone unavailable — tap the screen to enable audio, then try again.');
+        notify.info('Audio unavailable — tap the screen to enable audio, then try again.');
+      }
+    }
+
+    // Wake Lock — prevent screen timeout during session
+    try {
+      if (navigator.wakeLock) {
+        state._wakeLock = await navigator.wakeLock.request('screen');
+        state._wakeLock.addEventListener('release', () => { state._wakeLock = null; });
+      }
+    } catch(e) { /* Wake Lock not available or denied */ }
+
+    // Content warning for advanced/intense methods
+    const needsWarning = method.category === 'advanced' || ['drill-instructor','dominatrix','interrogator','commander'].includes(getPersona().id);
+    if (needsWarning) {
+      const warningShown = await new Promise(resolve => {
+        const proceed = confirm(
+          'This session uses advanced techniques that may produce intense experiences including dissociation, hallucination, or strong emotional responses.\n\n' +
+          'Ensure you are in a safe, comfortable environment. Do not drive or operate machinery after.\n\n' +
+          'The "end & re-alert" button is always available.\n\nProceed?'
+        );
+        resolve(proceed);
+      });
+      if (!warningShown) {
+        document.getElementById('session-screen').style.display = 'none';
+        document.getElementById('setup-wizard').style.display = 'block';
+        document.body.classList.remove('in-session');
+        await drone.stop(); stopVisuals();
+        try { state._wakeLock?.release(); } catch(e) {}
+        return;
       }
     }
 
@@ -2243,7 +2476,9 @@ Begin:`;
           await sleep(350);
           display.textContent = chunk;
           display.style.opacity = 0.5;
+          if (drone.running) drone.duck();
           await speak(chunk);
+          if (drone.running) drone.unduck();
         }
       } else {
         const seconds = parseInt(parts[i], 10) || 4;
@@ -2290,6 +2525,27 @@ Begin:`;
     document.body.classList.remove('in-session');
     document.getElementById('session-screen').style.display = 'none';
     document.getElementById('post-screen').style.display = 'block';
+
+    // Release wake lock
+    try { state._wakeLock?.release(); } catch(e) {}
+
+    // Save session to history
+    const elapsed = state._sessionStartTime ? Math.round((Date.now() - state._sessionStartTime) / 1000) : 0;
+    const sessionRecord = {
+      id: 'sess_' + Date.now(),
+      date: Date.now(),
+      guide: getPersona().name,
+      method: getMethod().name,
+      intention: state.intentionType,
+      length: state.length,
+      soundscape: state.soundscape,
+      durationSec: elapsed,
+      completed: !wasEmergency,
+    };
+    const history = (await idbGet('stillness_history_v1')) || [];
+    history.unshift(sessionRecord);
+    if (history.length > 50) history.length = 50; // Keep last 50
+    await idbSet('stillness_history_v1', history);
 
     // Build post-session summary
     const elapsed = state._sessionStartTime ? Math.round((Date.now() - state._sessionStartTime) / 1000) : 0;
@@ -2421,7 +2677,16 @@ Begin:`;
  
   // Step 4
   document.getElementById('lengthSelect').addEventListener('change', () => { state.length = document.getElementById('lengthSelect').value; hideScript(); });
-  document.getElementById('droneToggle').addEventListener('change', e => state.droneEnabled = e.target.checked);
+  document.getElementById('soundscapeSelect')?.addEventListener('change', e => {
+    state.soundscape = e.target.value;
+    state.droneEnabled = e.target.value !== 'none';
+    // Show headphones warning for binaural
+    const hint = document.getElementById('soundscapeHint');
+    if (hint) {
+      if (e.target.value === 'binaural') hint.textContent = '⚠ Binaural beats require stereo headphones. Efficacy is contested in peer-reviewed literature.';
+      else hint.textContent = 'Procedurally generated — never loops. Use headphones for best experience.';
+    }
+  });
   document.getElementById('droneVolume').addEventListener('input', e => { state.droneVolume = parseInt(e.target.value,10)/100; drone.setVolume(state.droneVolume); });
   document.getElementById('speechRate').addEventListener('input', e => state.speechRate = parseInt(e.target.value,10)/100);
  
@@ -2477,8 +2742,12 @@ Begin:`;
     renderMethodDetail();
     renderLibrary();
     updateIntentionHint();
-    document.getElementById('droneToggle').checked = getMethod().drone;
-    state.droneEnabled = getMethod().drone;
+    // Set soundscape default based on first method
+    const defaultMethod = getMethod();
+    state.soundscape = defaultMethod.drone ? 'drone' : 'none';
+    state.droneEnabled = defaultMethod.drone;
+    const ssSelect = document.getElementById('soundscapeSelect');
+    if (ssSelect) ssSelect.value = state.soundscape;
     updateStepUI();
 
     // AI preload (delayed on mobile to avoid slowing page load)
