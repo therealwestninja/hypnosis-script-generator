@@ -1,0 +1,2183 @@
+<style>
+  :root {
+    --bg: #050709;
+    --bg-soft: #0f1318;
+    --bg-softer: #161b23;
+    --text: #b8c2d1;
+    --text-dim: #4a5668;
+    --text-faint: #2a3340;
+    --accent: #6b94b8;
+    --accent-soft: #2a4055;
+    --accent-warm: #b8986b;
+    --accent-green: #7ba88e;
+    --accent-purple: #9a7bb8;
+    --fixation: #d4dce8;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh; overflow-x: hidden;
+  }
+  body { padding: 24px 18px 60px; }
+  .container { max-width: 720px; margin: 0 auto; }
+  h1 {
+    font-weight: 200; font-size: 1.4rem; letter-spacing: 0.14em;
+    color: var(--text-dim); text-align: center;
+    margin: 0 0 28px; text-transform: uppercase;
+  }
+ 
+  /* ============ STEPPER ============ */
+  .stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 36px;
+    padding: 0 8px;
+  }
+  .step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 56px;
+    flex: 0 1 auto;
+    position: relative;
+    cursor: default;
+  }
+  .step-item.clickable { cursor: pointer; }
+  .step-item.clickable:hover .step-circle { border-color: var(--accent); }
+  .step-circle {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--bg-soft);
+    border: 2px solid #1a2230;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--text-dim);
+    transition: all 0.3s;
+    z-index: 2; position: relative;
+  }
+  .step-item.current .step-circle {
+    border-color: var(--accent); color: var(--accent);
+    box-shadow: 0 0 16px rgba(107, 148, 184, 0.45);
+    background: var(--bg);
+  }
+  .step-item.completed .step-circle {
+    background: var(--accent); border-color: var(--accent); color: var(--bg);
+  }
+  .step-item.completed .step-num::before { content: '✓'; }
+  .step-item.completed .step-num-text { display: none; }
+  .step-label {
+    font-size: 0.65rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-faint);
+    text-align: center; line-height: 1.3;
+    max-width: 90px;
+  }
+  .step-item.current .step-label,
+  .step-item.completed .step-label { color: var(--text-dim); }
+  .step-value {
+    font-size: 0.68rem;
+    color: var(--accent);
+    text-align: center;
+    max-width: 90px;
+    line-height: 1.2;
+    font-style: italic;
+    margin-top: -4px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .step-connector {
+    flex: 1 1 auto;
+    height: 2px;
+    background: #1a2230;
+    margin-top: 17px;
+    max-width: 50px;
+    min-width: 12px;
+    transition: background 0.3s;
+  }
+  .step-connector.completed { background: var(--accent); }
+ 
+  /* ============ STEP CONTENT ============ */
+  .step-content { display: none; animation: stepIn 0.4s ease-out; }
+  .step-content.active { display: block; }
+  @keyframes stepIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .step-header { text-align: center; margin-bottom: 28px; }
+  .step-title {
+    font-size: 1.5rem; font-weight: 300;
+    letter-spacing: 0.06em; color: var(--text);
+    margin: 0 0 8px;
+  }
+  .step-subtitle {
+    font-size: 0.88rem; color: var(--text-dim);
+    margin: 0; line-height: 1.55;
+    max-width: 500px; margin: 0 auto;
+  }
+ 
+  /* ============ NAV BAR ============ */
+  .step-nav {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 40px;
+    padding-top: 24px; border-top: 1px solid #1a2230;
+    gap: 16px;
+  }
+  .step-nav .btn-back, .step-nav .btn-next {
+    padding: 12px 26px; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 500;
+    cursor: pointer; letter-spacing: 0.03em;
+    transition: all 0.2s; border: none;
+  }
+  .step-nav .btn-back {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid #1a2230;
+  }
+  .step-nav .btn-back:hover { color: var(--text); border-color: var(--accent-soft); }
+  .step-nav .btn-next {
+    background: var(--accent); color: var(--bg);
+    font-weight: 600; min-width: 140px;
+  }
+  .step-nav .btn-next:hover { filter: brightness(1.15); }
+  .step-nav .btn-next:disabled { opacity: 0.4; cursor: not-allowed; filter: none; }
+  .step-nav .step-spacer { flex: 0 0 0; }
+  .btn-back[hidden], .btn-next[hidden] { display: none !important; }
+ 
+  /* ============ CARD GRID (personas & methods) ============ */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+  .card {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 10px; padding: 12px 14px; cursor: pointer;
+    transition: all 0.2s; position: relative;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .card:hover { border-color: var(--accent-soft); }
+  .card.selected { border-color: var(--accent); background: #131c28; }
+  .card .card-name { font-weight: 500; font-size: 0.92rem; color: var(--text); }
+  .card .card-tagline { font-size: 0.76rem; color: var(--text-dim); line-height: 1.4; }
+  .card .card-tags { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 2px; }
+  .card .card-tag {
+    font-size: 0.62rem; color: var(--text-faint);
+    padding: 1px 5px; border: 1px solid var(--text-faint);
+    border-radius: 3px; text-transform: lowercase; letter-spacing: 0.05em;
+  }
+  .card.category-demonstration { border-top: 2px solid var(--accent-purple); }
+  .card.selected.category-demonstration { border-color: var(--accent-purple); background: #1a1420; }
+  .card .card-actions { position: absolute; top: 6px; right: 6px; display: none; gap: 4px; }
+  .card.is-custom:hover .card-actions { display: flex; }
+  .card .card-action-btn {
+    background: var(--bg-softer); border: 1px solid #2a3340;
+    color: var(--text-dim); border-radius: 4px; padding: 2px 6px;
+    font-size: 0.7rem; cursor: pointer;
+  }
+  .card .card-action-btn:hover { color: var(--text); }
+  .card.add-new {
+    align-items: center; justify-content: center;
+    border-style: dashed; color: var(--text-dim); min-height: 80px; text-align: center;
+  }
+  .card .card-badge {
+    display: inline-block; background: var(--accent-soft); color: var(--text);
+    font-size: 0.58rem; padding: 2px 5px; border-radius: 3px;
+    letter-spacing: 0.05em; text-transform: uppercase; font-weight: 400;
+    margin-left: 6px; vertical-align: middle;
+  }
+ 
+  /* ============ FILTER TABS ============ */
+  .filter-tabs { display: flex; gap: 4px; margin-bottom: 12px; justify-content: center; }
+  .filter-tab {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    color: var(--text-dim); border-radius: 6px;
+    padding: 6px 14px; cursor: pointer; font-size: 0.78rem;
+    transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { background: var(--accent-soft); color: var(--text); border-color: var(--accent); }
+ 
+  /* ============ DETAIL PANEL ============ */
+  .detail-panel {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 10px; padding: 14px 16px; margin-top: 12px;
+    font-size: 0.85rem; line-height: 1.55; color: var(--text-dim);
+  }
+  .detail-panel strong { color: var(--text); }
+  .detail-panel .detail-title { font-size: 0.95rem; color: var(--text); font-weight: 500; margin-bottom: 6px; }
+ 
+  /* ============ INPUTS ============ */
+  textarea, input, select {
+    width: 100%; background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 8px; color: var(--text); padding: 12px 14px;
+    font-family: inherit; font-size: 0.95rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  textarea { resize: vertical; min-height: 70px; }
+  textarea:focus, input:focus, select:focus { border-color: var(--accent); }
+  select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5668' stroke-width='1.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px;
+  }
+  .field-label { display: block; font-size: 0.8rem; color: var(--text-dim); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 8px; }
+  .field-group { margin-bottom: 20px; }
+  .sublabel { font-size: 0.75rem; color: var(--text-faint); margin-top: 6px; line-height: 1.5; }
+ 
+  .toggle-row {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-soft); padding: 12px 14px;
+    border-radius: 8px; border: 1px solid #1a2230; margin-bottom: 8px;
+  }
+  .toggle-row label { flex: 1; font-size: 0.9rem; color: var(--text); cursor: pointer; }
+  .toggle-row .hint { font-size: 0.75rem; color: var(--text-dim); display: block; margin-top: 2px; }
+  .toggle-row input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+  .toggle-row input[type="range"] { flex: 1; max-width: 140px; }
+ 
+  /* ============ BUTTONS ============ */
+  .btn {
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 8px; padding: 13px 20px; font-size: 0.95rem; font-weight: 600;
+    letter-spacing: 0.04em; cursor: pointer; transition: filter 0.2s;
+  }
+  .btn:hover { filter: brightness(1.15); }
+  .btn.full { width: 100%; }
+  .btn.secondary { background: transparent; color: var(--text-dim); border: 1px solid #1a2230; }
+  .btn.warm { background: var(--accent-warm); }
+  .btn.green { background: var(--accent-green); }
+  .btn:disabled { opacity: 0.5; cursor: wait; filter: none; }
+ 
+  /* ============ CRAFTED PREVIEW ============ */
+  .crafted-preview {
+    background: var(--bg-soft); border: 1px solid var(--accent-warm);
+    border-radius: 10px; padding: 16px; margin-top: 16px; display: none;
+  }
+  .crafted-preview.visible { display: block; }
+  .crafted-preview h3 {
+    font-size: 0.72rem; color: var(--accent-warm);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 0 0 12px; font-weight: 500;
+  }
+  .crafted-text {
+    font-size: 1rem; line-height: 1.6; color: var(--text); font-style: italic;
+    padding: 12px; background: var(--bg); border-radius: 6px;
+    margin-bottom: 12px; white-space: pre-wrap;
+  }
+  .crafted-editable { font-size: 0.95rem; line-height: 1.6; color: var(--text); font-style: italic; min-height: 120px; }
+  .crafted-meta { font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
+  .crafted-meta strong { color: var(--accent-warm); }
+  .crafted-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .crafted-actions .btn { flex: 1; min-width: 90px; padding: 8px 12px; font-size: 0.85rem; }
+ 
+  /* ============ SUMMARY CARDS (step 5) ============ */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px; margin-bottom: 20px;
+  }
+  .summary-card {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .summary-card .summary-label {
+    font-size: 0.62rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-faint);
+    margin-bottom: 4px;
+  }
+  .summary-card .summary-value {
+    font-size: 0.9rem; color: var(--text); line-height: 1.35;
+  }
+ 
+  .brief-preview {
+    background: var(--bg-soft); border: 1px solid var(--accent-soft);
+    border-radius: 10px; padding: 14px 16px; margin-bottom: 20px;
+    font-size: 0.9rem; line-height: 1.55;
+    color: var(--text-dim); font-style: italic;
+  }
+  .brief-preview strong { color: var(--text); font-style: normal; }
+ 
+  .script-preview {
+    background: var(--bg-soft); border: 1px solid var(--accent-green);
+    border-radius: 10px; padding: 16px; margin-top: 16px; display: none;
+  }
+  .script-preview.visible { display: block; }
+  .script-preview h3 {
+    font-size: 0.72rem; color: var(--accent-green);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 0 0 12px; font-weight: 500;
+  }
+  .script-stats { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 10px; line-height: 1.5; }
+  .script-stats strong { color: var(--text); }
+  .script-text {
+    width: 100%; min-height: 260px; max-height: 440px;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: 0.82rem; line-height: 1.55;
+    background: var(--bg); color: var(--text);
+    padding: 14px; border: 1px solid #1a2230; border-radius: 6px;
+    white-space: pre-wrap; resize: vertical;
+  }
+  .script-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .script-actions .btn { flex: 1; min-width: 100px; padding: 10px 12px; font-size: 0.88rem; }
+ 
+  /* ============ LIBRARY ============ */
+  .library-list { display: grid; gap: 6px; margin-top: 8px; }
+  .library-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 8px; padding: 10px 12px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .library-item:hover { border-color: var(--accent); }
+  .library-item .lib-name { flex: 1; font-size: 0.85rem; color: var(--text); }
+  .library-item .lib-meta { font-size: 0.7rem; color: var(--text-faint); }
+  .library-item .lib-del {
+    background: transparent; border: none; color: var(--text-faint);
+    cursor: pointer; font-size: 1rem; padding: 2px 6px;
+  }
+  .library-item .lib-del:hover { color: #d88; }
+  .library-empty { font-size: 0.8rem; color: var(--text-faint); font-style: italic; padding: 10px 0; }
+ 
+  /* ============ MODALS ============ */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    z-index: 100; display: none;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-backdrop.visible { display: flex; }
+  .modal {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 12px; padding: 24px;
+    max-width: 540px; width: 100%;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal h2 { margin: 0 0 20px; font-size: 1.1rem; color: var(--text); font-weight: 500; }
+  .modal .field { margin-bottom: 16px; }
+  .modal .field-label-sm { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 0; text-transform: none; }
+  .modal .field-hint { font-size: 0.75rem; color: var(--text-faint); margin-top: 4px; }
+  .modal .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal .modal-actions .btn { flex: 1; }
+ 
+  /* ============ SAVED SCRIPTS DETAILS ============ */
+  details summary { cursor: pointer; color: var(--text-dim); font-size: 0.85rem; padding: 6px 0; }
+  details summary:hover { color: var(--text); }
+ 
+  /* ============ DISCLAIMER ============ */
+  .disclaimer {
+    font-size: 0.75rem; color: var(--text-dim); line-height: 1.55;
+    background: var(--bg-soft); padding: 12px 14px; border-radius: 6px;
+    border-left: 2px solid var(--accent-soft); margin-top: 24px;
+  }
+ 
+  /* ============ SESSION SCREEN ============ */
+  #session-screen { text-align: center; padding-top: 8px; }
+  body.in-session { background: #000; }
+  body.in-session .container { color: var(--text-faint); }
+  .phase-indicator { font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 20px; }
+  .stage { position: relative; width: 100%; height: 360px; margin: 0 auto 30px; border-radius: 12px; overflow: hidden; background: #000; }
+  .fixation-dot {
+    position: absolute; top: 38%; left: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--fixation); box-shadow: 0 0 24px rgba(212, 220, 232, 0.6);
+    transform: translate(-50%, -50%); z-index: 10;
+  }
+  .fixation-dot.pulse { animation: dot-pulse 8s ease-in-out infinite; }
+  @keyframes dot-pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    50%      { transform: translate(-50%, -50%) scale(1.6); opacity: 0.6; }
+  }
+  .highway-canvas { position: absolute; inset: 0; }
+  .spiral-svg {
+    position: absolute; top: 50%; left: 50%;
+    width: 320px; height: 320px;
+    transform: translate(-50%, -50%);
+    animation: spiral-rotate 18s linear infinite;
+  }
+  @keyframes spiral-rotate {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  .pulse-rings { position: absolute; inset: 0; }
+  .pulse-ring {
+    position: absolute; top: 50%; left: 50%;
+    border: 1px solid rgba(107, 148, 184, 0.3);
+    border-radius: 50%; transform: translate(-50%, -50%);
+    animation: ring-expand 6s ease-out infinite;
+  }
+  .pulse-ring:nth-child(2) { animation-delay: 2s; }
+  .pulse-ring:nth-child(3) { animation-delay: 4s; }
+  @keyframes ring-expand {
+    0%   { width: 20px; height: 20px; opacity: 0.8; }
+    100% { width: 320px; height: 320px; opacity: 0; }
+  }
+  .text-display {
+    min-height: 60px; padding: 20px 12px;
+    font-size: 0.85rem; font-weight: 300; line-height: 1.6;
+    color: var(--text-faint); transition: opacity 0.35s; font-style: italic;
+  }
+  .session-controls { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+  .session-controls .btn { padding: 8px 14px; font-size: 0.8rem; opacity: 0.4; transition: opacity 0.2s; }
+  .session-controls .btn:hover { opacity: 1; }
+  .audio-indicator, .persona-indicator, .method-indicator {
+    position: absolute; font-size: 0.65rem; color: var(--text-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .audio-indicator { bottom: 8px; left: 8px; }
+  .persona-indicator { bottom: 8px; right: 8px; }
+  .method-indicator { top: 8px; left: 8px; }
+
+    /* ============ FOOTER ============ */
+  .footer {
+  max-width: 720px;           /* matches .container */
+  margin: 50px auto 0;
+  padding: 20px 12px 0;
+  border-top: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  letter-spacing: 0.04em;
+  line-height: 1.7;
+}
+
+.footer span {
+  color: var(--text-faint);
+}
+
+.footer a {
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer a:hover {
+  color: var(--accent);
+}
+
+/* dim the footer during a session so it doesn't pull attention */
+body.in-session .footer {
+  opacity: 0.25;
+}
+
+  /* ============ TOAST NOTIFICATIONS ============ */
+  #toastContainer {
+    position: fixed; bottom: 14px; right: 14px; z-index: 9999;
+    display: flex; flex-direction: column-reverse; gap: 8px;
+    max-width: 340px; pointer-events: none;
+  }
+  .toast {
+    display: flex; align-items: flex-start; gap: 9px;
+    background: #16161c; border-radius: 8px; padding: 9px 12px;
+    font-size: 0.78rem; line-height: 1.5; color: #e2e0d8;
+    pointer-events: all; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    opacity: 0; transform: translateX(12px);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .toast.show { opacity: 1; transform: translateX(0); }
+  .toast-info    { border-left: 3px solid #5fa0dc; }
+  .toast-success { border-left: 3px solid #7dc87a; }
+  .toast-warn    { border-left: 3px solid #f0a04a; }
+  .toast-error   { border-left: 3px solid #e05050; }
+  .toast-icon { flex-shrink: 0; margin-top: 1px; font-size: 0.82rem; }
+  .toast-info .toast-icon    { color: #5fa0dc; }
+  .toast-success .toast-icon { color: #7dc87a; }
+  .toast-warn .toast-icon    { color: #f0a04a; }
+  .toast-error .toast-icon   { color: #e05050; }
+  .toast-text { flex: 1; white-space: pre-wrap; word-break: break-word; }
+  .toast-close {
+    background: transparent; border: none; color: rgba(255,255,255,0.3);
+    font-size: 1rem; line-height: 1; cursor: pointer; padding: 0;
+    flex-shrink: 0; pointer-events: all;
+  }
+  .toast-close:hover { color: rgba(255,255,255,0.6); }
+
+  /* ============ SESSION PROGRESS BAR ============ */
+  .session-progress-wrap {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px; background: rgba(255,255,255,0.06); z-index: 15;
+  }
+  .session-progress-fill {
+    height: 100%; width: 0%; transition: width 0.4s linear;
+    background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    border-radius: 0 2px 2px 0;
+  }
+  .phase-dots {
+    display: flex; gap: 6px; justify-content: center;
+    margin-bottom: 12px;
+  }
+  .phase-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    transition: all 0.4s;
+  }
+  .phase-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(107, 148, 184, 0.5);
+  }
+  .phase-dot.done { background: rgba(107, 148, 184, 0.35); }
+  .session-time {
+    font-size: 0.6rem; letter-spacing: 0.1em;
+    color: var(--text-faint); text-align: center;
+    margin-top: 4px;
+  }
+
+  /* ============ POST-SESSION SUMMARY ============ */
+  .post-summary {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 10px; padding: 16px; margin: 20px 0;
+    text-align: left;
+  }
+  .post-summary h3 {
+    font-size: 0.72rem; color: var(--accent);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 0 0 10px; font-weight: 500;
+  }
+  .post-summary .post-row {
+    display: flex; justify-content: space-between;
+    padding: 4px 0; font-size: 0.82rem;
+  }
+  .post-summary .post-label { color: var(--text-dim); }
+  .post-summary .post-value { color: var(--text); font-weight: 500; }
+  .post-trigger {
+    background: var(--bg); border: 1px solid var(--accent-warm);
+    border-radius: 8px; padding: 10px 14px; margin-top: 10px;
+    text-align: center;
+  }
+  .post-trigger .trigger-label {
+    font-size: 0.68rem; color: var(--accent-warm);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .post-trigger .trigger-text {
+    font-size: 0.95rem; color: var(--text); font-style: italic;
+  }
+
+  /* ============ VOICE PREVIEW ============ */
+  .voice-preview-row {
+    display: flex; align-items: center; gap: 8px; margin-top: 8px;
+  }
+  .voice-preview-btn {
+    background: var(--bg-softer); border: 1px solid #2a3340;
+    color: var(--text-dim); border-radius: 6px;
+    padding: 6px 12px; font-size: 0.78rem; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .voice-preview-btn:hover { color: var(--text); border-color: var(--accent-soft); }
+
+  /* ============ COOLDOWN OVERLAY ============ */
+  .cooldown-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+    z-index: 50; display: none; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .cooldown-overlay.visible { display: flex; }
+  .cooldown-timer {
+    font-size: 2.5rem; font-weight: 200; color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .cooldown-label {
+    font-size: 0.8rem; color: var(--text-dim); letter-spacing: 0.06em;
+  }
+
+  /* ============ REDUCED MOTION ============ */
+  @media (prefers-reduced-motion: reduce) {
+    .fixation-dot.pulse { animation: none; }
+    .spiral-svg { animation: none; }
+    .pulse-ring { animation: none; }
+    @keyframes stepIn { from { opacity: 1; transform: none; } }
+    .step-circle, .step-connector { transition: none; }
+  }
+</style>
+ 
+<div class="container">
+  <h1>· hypnosis script generator · </h1>
+  <p>An <i>Ai-driven</i> free hypnosis experience generator. Generate scripts<br> with automatically narrated voiceovers and fully guided sessions.</p>
+ 
+  <!-- ============ WIZARD ============ -->
+  <div id="setup-wizard">
+ 
+    <!-- STEPPER -->
+    <div class="stepper" id="stepper">
+      <div class="step-item current" data-step="1">
+        <div class="step-circle"><span class="step-num"><span class="step-num-text">1</span></span></div>
+        <div class="step-label">Guide</div>
+        <div class="step-value" id="stepValue1"></div>
+      </div>
+      <div class="step-connector" data-connector="1-2"></div>
+      <div class="step-item" data-step="2">
+        <div class="step-circle"><span class="step-num"><span class="step-num-text">2</span></span></div>
+        <div class="step-label">Method</div>
+        <div class="step-value" id="stepValue2"></div>
+      </div>
+      <div class="step-connector" data-connector="2-3"></div>
+      <div class="step-item" data-step="3">
+        <div class="step-circle"><span class="step-num"><span class="step-num-text">3</span></span></div>
+        <div class="step-label">Intention</div>
+        <div class="step-value" id="stepValue3"></div>
+      </div>
+      <div class="step-connector" data-connector="3-4"></div>
+      <div class="step-item" data-step="4">
+        <div class="step-circle"><span class="step-num"><span class="step-num-text">4</span></span></div>
+        <div class="step-label">Configure</div>
+        <div class="step-value" id="stepValue4"></div>
+      </div>
+      <div class="step-connector" data-connector="4-5"></div>
+      <div class="step-item" data-step="5">
+        <div class="step-circle"><span class="step-num"><span class="step-num-text">5</span></span></div>
+        <div class="step-label">Generate</div>
+        <div class="step-value" id="stepValue5"></div>
+      </div>
+    </div>
+ 
+    <!-- STEP 1: GUIDE -->
+    <div class="step-content active" data-step="1">
+      <div class="step-header">
+        <h2 class="step-title">Choose Your Guide</h2>
+        <p class="step-subtitle">The voice that will lead you through this session. Different guides suit different temperaments.</p>
+      </div>
+      <div class="filter-tabs" id="personaFilterTabs">
+        <div class="filter-tab active" data-filter="all">all</div>
+        <div class="filter-tab" data-filter="contemplative">contemplative</div>
+        <div class="filter-tab" data-filter="showman">showman</div>
+      </div>
+      <div class="card-grid" id="personaGrid"></div>
+      <div class="detail-panel" id="personaDetail"></div>
+ 
+      <details style="margin-top: 20px;">
+        <summary>saved scripts (load a previous session)</summary>
+        <div class="library-list" id="libraryList"></div>
+      </details>
+    </div>
+ 
+    <!-- STEP 2: METHOD -->
+    <div class="step-content" data-step="2">
+      <div class="step-header">
+        <h2 class="step-title">Choose Your Method</h2>
+        <p class="step-subtitle">How trance will be induced. Therapeutic methods are slower and subtler; demonstrations produce undeniable physical effects.</p>
+      </div>
+      <div class="filter-tabs" id="methodFilterTabs">
+        <div class="filter-tab active" data-filter="all">all</div>
+        <div class="filter-tab" data-filter="therapeutic">therapeutic</div>
+        <div class="filter-tab" data-filter="demonstration">demonstration</div>
+      </div>
+      <div class="card-grid" id="methodGrid"></div>
+      <div class="detail-panel" id="methodDetail"></div>
+    </div>
+ 
+    <!-- STEP 3: INTENTION -->
+    <div class="step-content" data-step="3">
+      <div class="step-header">
+        <h2 class="step-title">Set Your Intention</h2>
+        <p class="step-subtitle">What you want from this session. Choose the type of change, describe it roughly, then let the AI craft a technically-sound hypnotic suggestion.</p>
+      </div>
+ 
+      <div class="field-group">
+        <label class="field-label">type of change</label>
+        <select id="intentionType">
+          <option value="emotional">Emotional state shift</option>
+          <option value="trigger" selected>Post-hypnotic trigger — "feel X when Y happens"</option>
+          <option value="behavior">Behavior change</option>
+          <option value="release">Release / let go</option>
+          <option value="perception">Perception shift</option>
+          <option value="anchor">Install an anchor (touch/gesture → state)</option>
+          <option value="convincer">Convincer demonstration</option>
+          <option value="novelty">Novelty effect / party trick</option>
+          <option value="trance">Just experience trance (no specific goal)</option>
+        </select>
+        <div class="sublabel" id="intentionTypeHint"></div>
+      </div>
+ 
+      <div class="field-group">
+        <label class="field-label">describe what you want</label>
+        <textarea id="intentionInput" placeholder="Plain language. Be specific. e.g. 'feel a warm happy smile when I think about kittens'"></textarea>
+      </div>
+ 
+      <button class="btn warm full" id="craftBtn">craft hypnotic suggestion →</button>
+ 
+      <div class="crafted-preview" id="craftedPreview">
+        <h3>crafted suggestion</h3>
+        <div class="crafted-text" id="craftedText"></div>
+        <textarea class="crafted-editable" id="craftedEditable" style="display:none;"></textarea>
+        <div class="crafted-meta" id="craftedMeta"></div>
+        <div class="crafted-actions">
+          <button class="btn secondary" id="recraftBtn">re-craft</button>
+          <button class="btn secondary" id="editCraftedBtn">edit manually</button>
+          <button class="btn secondary" id="saveEditBtn" style="display:none;">save edit</button>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- STEP 4: CONFIGURE -->
+    <div class="step-content" data-step="4">
+      <div class="step-header">
+        <h2 class="step-title">Configure the Session</h2>
+        <p class="step-subtitle">Adjust length, voice, and audio. Defaults are fine for most people — change only if you know why.</p>
+      </div>
+ 
+      <div class="field-group">
+        <label class="field-label">session length</label>
+        <select id="lengthSelect">
+          <option value="short">Short (~12 min) — quick reset</option>
+          <option value="medium" selected>Medium (~20 min) — recommended</option>
+          <option value="long">Long (~30 min) — deepest</option>
+        </select>
+      </div>
+ 
+      <div class="field-group">
+        <label class="field-label">audio</label>
+        <div class="toggle-row">
+          <label for="droneToggle">Engine drone<span class="hint">Synthesized low ambient tone. Use headphones.</span></label>
+          <input type="checkbox" id="droneToggle">
+        </div>
+        <div class="toggle-row"><label for="droneVolume">Drone volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"></div>
+        <div class="toggle-row"><label for="speechRate">Voice speed<span class="hint">Slower is more hypnotic.</span></label><input type="range" id="speechRate" min="50" max="100" value="65"></div>
+      </div>
+ 
+      <div class="field-group">
+        <label class="field-label">voice</label>
+        <select id="voiceSelect"></select>
+        <div class="voice-preview-row">
+          <button class="voice-preview-btn" id="voicePreviewBtn">▶ preview voice</button>
+          <span class="sublabel" style="margin:0;">Hear a sample sentence with current settings.</span>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- STEP 5: GENERATE & BEGIN -->
+    <div class="step-content" data-step="5">
+      <div class="step-header">
+        <h2 class="step-title">Generate Your Session</h2>
+        <p class="step-subtitle">Review your choices, generate the full script, then begin.</p>
+      </div>
+ 
+      <div class="summary-grid">
+        <div class="summary-card"><div class="summary-label">Guide</div><div class="summary-value" id="summaryGuide">—</div></div>
+        <div class="summary-card"><div class="summary-label">Method</div><div class="summary-value" id="summaryMethod">—</div></div>
+        <div class="summary-card"><div class="summary-label">Length</div><div class="summary-value" id="summaryLength">—</div></div>
+        <div class="summary-card"><div class="summary-label">Intention</div><div class="summary-value" id="summaryIntention">—</div></div>
+      </div>
+ 
+      <div class="brief-preview" id="briefPreview"></div>
+ 
+      <button class="btn green full" id="generateScriptBtn">generate full script</button>
+      <div class="sublabel" style="text-align: center; margin-top: 6px;">one AI call. ~20–40 seconds.</div>
+ 
+      <div class="script-preview" id="scriptPreview">
+        <h3>session script</h3>
+        <div class="script-stats" id="scriptStats"></div>
+        <textarea class="script-text" id="scriptText" spellcheck="false"></textarea>
+        <div class="script-actions">
+          <button class="btn secondary" id="regenScriptBtn">regenerate</button>
+          <button class="btn secondary" id="saveScriptBtn">save to library</button>
+          <button class="btn green" id="beginBtn">begin session →</button>
+        </div>
+      </div>
+ 
+      <div class="disclaimer">
+        <strong>Reminder:</strong> Therapeutic methods feel like nothing for the first 5–8 minutes — that's the mechanism. Demonstration methods should produce noticeable effects. Don't drive after. Skip if you have epilepsy, dissociative disorders, or psychosis.
+      </div>
+    </div>
+ 
+    <!-- NAVIGATION -->
+    <div class="step-nav">
+      <button class="btn-back" id="btnBack" hidden>← back</button>
+      <div class="step-spacer"></div>
+      <button class="btn-next" id="btnNext">next →</button>
+    </div>
+  <div class="footer"><span>© 2026 therealwestninja.</span> · <a href="https://www.deviantart.com/west-ninja" target="_blank" rel="noopener">DeviantArt</a> · <a href="https://github.com/therealwestninja" target="_blank" rel="noopener">GitHub</a></div>
+  </div>
+ 
+  <!-- SESSION SCREEN -->
+  <div id="session-screen" style="display:none;">
+    <div class="phase-dots" id="phaseDots">
+      <div class="phase-dot" data-phase="settling"></div>
+      <div class="phase-dot" data-phase="induction"></div>
+      <div class="phase-dot" data-phase="deepener"></div>
+      <div class="phase-dot" data-phase="work"></div>
+      <div class="phase-dot" data-phase="emergence"></div>
+    </div>
+    <div class="phase-indicator" id="phaseIndicator">settling</div>
+    <div class="stage" id="stage">
+      <div class="fixation-dot pulse" id="fixationDot"></div>
+      <div class="method-indicator" id="methodIndicator"></div>
+      <div class="audio-indicator" id="audioIndicator"></div>
+      <div class="persona-indicator" id="personaIndicator"></div>
+      <div class="session-progress-wrap"><div class="session-progress-fill" id="sessionProgressFill"></div></div>
+    </div>
+    <div class="text-display" id="textDisplay">·</div>
+    <div class="session-time" id="sessionTime"></div>
+    <div class="session-controls">
+      <button class="btn secondary" id="pauseBtn">pause</button>
+      <button class="btn secondary" id="endBtn">end & re-alert</button>
+    </div>
+  </div>
+ 
+  <!-- POST-SESSION -->
+  <div id="post-screen" style="display:none;">
+    <div style="text-align:center; padding: 40px 0;">
+      <div style="font-size: 2rem; color: var(--accent); margin-bottom: 16px;">·</div>
+      <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-dim);">Take a moment.<br>Notice how you feel.<br>Sip some water if you have it.</p>
+      <div class="post-summary" id="postSummary"></div>
+      <div id="postTriggerBox"></div>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 24px; flex-wrap: wrap;">
+        <button class="btn secondary" id="postSaveBtn">save to library</button>
+        <button class="btn" style="max-width: 240px;" id="restartBtn">begin a new session</button>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="modal-backdrop" id="personaModal">
+  <div class="modal">
+    <h2 id="personaModalTitle">create custom persona</h2>
+    <div class="field"><label class="field-label-sm">name</label><input type="text" id="personaFormName"></div>
+    <div class="field"><label class="field-label-sm">tagline</label><input type="text" id="personaFormTagline"></div>
+    <div class="field"><label class="field-label-sm">category</label><select id="personaFormCategory"><option value="contemplative">Contemplative</option><option value="showman">Showman</option></select></div>
+    <div class="field"><label class="field-label-sm">voice instruction</label><textarea id="personaFormPrompt" rows="6"></textarea></div>
+    <div class="modal-actions"><button class="btn secondary" id="personaCancelBtn">cancel</button><button class="btn" id="personaSaveBtn">save</button></div>
+  </div>
+</div>
+ 
+<div class="modal-backdrop" id="saveScriptModal">
+  <div class="modal">
+    <h2>save script to library</h2>
+    <div class="field"><label class="field-label-sm">name</label><input type="text" id="saveScriptName"></div>
+    <div class="modal-actions"><button class="btn secondary" id="saveScriptCancelBtn">cancel</button><button class="btn" id="saveScriptConfirmBtn">save</button></div>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<div class="cooldown-overlay" id="cooldownOverlay">
+  <div>
+    <div class="cooldown-timer" id="cooldownTimer">30</div>
+    <div class="cooldown-label">seconds before next session</div>
+    <div class="sublabel" style="margin-top: 10px; color: var(--text-faint);">Give yourself time to re-orient.</div>
+  </div>
+</div>
+ 
+<script>
+  // ====================================================================
+  // IDB STORAGE (ported from Adaptive Session Studio — MIT)
+  // Replaces localStorage for reliable persistence
+  // ====================================================================
+  const IDB_NAME = 'stillness-db';
+  const IDB_VER  = 1;
+  const IDB_STORE = 'kv';
+  let _idb = null;
+  let _idbOpenP = null;
+
+  function _openIdb() {
+    if (_idb) return Promise.resolve(_idb);
+    if (_idbOpenP) return _idbOpenP;
+    _idbOpenP = new Promise((resolve, reject) => {
+      const req = indexedDB.open(IDB_NAME, IDB_VER);
+      req.onupgradeneeded = e => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+      };
+      req.onsuccess = e => {
+        _idb = e.target.result;
+        _idb.onclose = () => { _idb = null; _idbOpenP = null; };
+        resolve(_idb);
+      };
+      req.onerror = e => { _idbOpenP = null; reject(e.target.error ?? new Error('IDB open failed')); };
+    });
+    return _idbOpenP;
+  }
+  async function idbGet(key) {
+    try {
+      const db = await _openIdb();
+      return await new Promise((res, rej) => {
+        const r = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(key);
+        r.onsuccess = () => res(r.result ?? null);
+        r.onerror = e => rej(e.target.error);
+      });
+    } catch { return null; }
+  }
+  async function idbSet(key, value) {
+    try {
+      const db = await _openIdb();
+      await new Promise((res, rej) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, key);
+        tx.oncomplete = res;
+        tx.onerror = e => rej(e.target.error);
+      });
+    } catch {}
+  }
+  async function idbDel(key) {
+    try {
+      const db = await _openIdb();
+      await new Promise((res, rej) => {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).delete(key);
+        tx.oncomplete = res;
+        tx.onerror = e => rej(e.target.error);
+      });
+    } catch {}
+  }
+
+  // ====================================================================
+  // TOAST NOTIFICATIONS (ported from Adaptive Session Studio — MIT)
+  // Non-blocking replacements for alert()
+  // ====================================================================
+  const TOAST_ICONS    = { info: 'ℹ', success: '✓', warn: '⚠', error: '✕' };
+  const TOAST_DURATION = { info: 3500, success: 3000, warn: 5000, error: 0 };
+
+  function toast(type, message, ms) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const duration = ms !== undefined ? ms : TOAST_DURATION[type] || 3500;
+    const el = document.createElement('div');
+    el.className = `toast toast-${type}`;
+    el.innerHTML = `<span class="toast-icon">${TOAST_ICONS[type] || 'ℹ'}</span><span class="toast-text">${escapeHtml(message)}</span><button class="toast-close">×</button>`;
+    el.querySelector('.toast-close').addEventListener('click', () => dismissToast(el));
+    if (duration === 0) el.addEventListener('click', () => dismissToast(el));
+    container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    let timer = null;
+    if (duration > 0) timer = setTimeout(() => dismissToast(el), duration);
+    function dismissToast(t) { clearTimeout(timer); t.classList.remove('show'); setTimeout(() => t.remove(), 220); }
+    return el;
+  }
+  const notify = {
+    info:    (msg, ms) => toast('info', msg, ms),
+    success: (msg, ms) => toast('success', msg, ms),
+    warn:    (msg, ms) => toast('warn', msg, ms),
+    error:   (msg, ms) => toast('error', msg, ms),
+  };
+
+  // ====================================================================
+  // iOS Safari viewport fix (from Perchance skill reference)
+  // ====================================================================
+  try {
+    const isTouchScreen = window.matchMedia("(pointer: coarse)").matches;
+    const isSafari = navigator.vendor?.indexOf('Apple') > -1
+      && !navigator.userAgent.includes('CriOS')
+      && !navigator.userAgent.includes('FxiOS');
+    if (isSafari && window.innerWidth < 800 && isTouchScreen) {
+      const viewportMeta = document.querySelector("[name=viewport]");
+      if (viewportMeta && !viewportMeta.getAttribute("content").includes("maximum-scale")) {
+        viewportMeta.setAttribute("content",
+          viewportMeta.getAttribute("content") + ", maximum-scale=1");
+      }
+    }
+  } catch(e) { console.error(e); }
+  // ====================================================================
+  // DATA: Methods
+  // ====================================================================
+  const METHODS = [
+    { id: 'highway', name: 'Highway', tagline: 'Sensory monotony + visual fixation.', tags: ['analytical', 'visual'], category: 'therapeutic', detail: 'Scrolling road lines, engine drone, repetitive minimal phrases. Eye fatigue plus auditory monotony produces trance through boredom rather than seduction. Best for analytical minds that resist verbal approaches.', visual: 'highway', drone: true, pacing: 'monotony', recommended: true },
+    { id: 'spiral', name: 'Spiral Fixation', tagline: 'Rotating spiral; visual eye-fatigue mechanism.', tags: ['visual', 'classic'], category: 'therapeutic', detail: 'A logarithmic spiral rotates slowly. Sustained focus produces eye fatigue plus subtle perceptual artifacts (drift, expansion). Voice stays sparse to support the visual mechanism.', visual: 'spiral', drone: true, pacing: 'monotony' },
+    { id: 'betty-erickson', name: 'Betty Erickson 3-2-1', tagline: 'Structured sensory countdown. Analytical-friendly.', tags: ['structured', 'analytical'], category: 'therapeutic', detail: 'Notice 3 things you see, 3 you hear, 3 you feel. Then 2 each. Then 1 each. The structure occupies the analytical mind while attention progressively narrows from external to internal.', visual: 'pulse', drone: false, pacing: 'structured' },
+    { id: 'staircase', name: 'Staircase Descent', tagline: 'Descend a staircase. Each step deeper.', tags: ['visual', 'classic'], category: 'therapeutic', detail: 'Eyes closed. Descend 10 stairs, each one deepening trance. At the bottom, arrive in a special place where the therapeutic suggestion is delivered.', visual: 'tunnel', drone: false, pacing: 'narrative' },
+    { id: 'hand-heaviness', name: 'Hand Heaviness', tagline: 'Hand becomes heavy. The convincer IS the induction.', tags: ['ideomotor', 'convincer'], category: 'therapeutic', detail: 'Dominant hand palm-down on thigh. Focus on it. Suggestions of heaviness build until the hand actually feels heavier — that real, physical experience IS the trance state.', visual: 'pulse', drone: false, pacing: 'focused' },
+    { id: 'confusion', name: 'Confusion Method', tagline: 'Overload analytical mind with paradoxes.', tags: ['analytical', 'resistant'], category: 'therapeutic', detail: 'Long sentences with embedded clauses, deliberate paradoxes, time distortion. The conscious mind tries to track and fails. When it gives up, trance happens by relief.', visual: 'vortex', drone: true, pacing: 'confusion' },
+    { id: 'fractionation', name: 'Fractionation', tagline: 'Induce, alert, re-induce. Each cycle deeper.', tags: ['skeptical'], category: 'therapeutic', detail: 'Light trance → alert → re-induce — each cycle deeper than the last. Good for doubters because you verify "alert" between cycles.', visual: 'pulse', drone: false, pacing: 'fractionation' },
+    { id: 'eye-roll', name: 'Eye-Roll (Spiegel)', tagline: 'Look up, eyes roll back. Fastest induction.', tags: ['rapid', 'physical'], category: 'therapeutic', detail: 'Spiegel method. Look up as high as possible, slowly close eyelids while keeping eyes rolled up. Physical strain triggers a state shift in seconds.', visual: 'pulse', drone: false, pacing: 'eye-roll' },
+    { id: 'breath-478', name: '4-7-8 Breath', tagline: 'Pure physiology. Parasympathetic activation.', tags: ['anxiety', 'sleep'], category: 'therapeutic', detail: 'Inhale 4 counts, hold 7, exhale 8. The extended exhale activates the vagus nerve. Body shifts state regardless of mental cooperation.', visual: 'pulse', drone: false, pacing: 'breath' },
+    { id: 'progressive', name: 'Progressive Relaxation', tagline: 'Body scan, head to toe. Best for sleep.', tags: ['sleep', 'somatic'], category: 'therapeutic', detail: 'Systematic relaxation of each muscle group from forehead to feet. Classic Jacobson method.', visual: 'colorwash', drone: false, pacing: 'body-scan' },
+    { id: 'ericksonian', name: 'Ericksonian Conversational', tagline: 'Permissive language patterns. Open form.', tags: ['verbal'], category: 'therapeutic', detail: 'Indirect suggestions, presupposition, embedded commands, the yes-set. Most flexible approach — no fixed structure, just skilled language patterns.', visual: 'mandala', drone: false, pacing: 'permissive' },
+    { id: 'magnetic-hands', name: 'Magnetic Hands', tagline: 'Fingers draw together on their own. Classic bar opener.', tags: ['demonstration', 'convincer', 'beginner'], category: 'demonstration', detail: 'Stage-hypnosis classic. Interlace fingers, palms pressed together, extend index fingers pointing up with a small gap between them. Suggestion that the fingers are drawing together produces ideomotor movement — they actually touch on their own.', visual: 'pulse', drone: false, pacing: 'focused' },
+    { id: 'arm-catalepsy', name: 'Arm Catalepsy', tagline: 'Arm extends and locks. Rigid like steel.', tags: ['demonstration', 'convincer', 'physical'], category: 'demonstration', detail: 'Extend your dominant arm straight out. Through focused suggestion, the arm becomes rigid — you genuinely cannot bend it easily. Combination of sustained muscle activation and trance-state override of normal motor inhibition.', visual: 'pulse', drone: false, pacing: 'focused' },
+    { id: 'pendulum', name: "Chevreul's Pendulum", tagline: 'Hold a pendulum. Watch it swing on its own.', tags: ['demonstration', 'ideomotor'], category: 'demonstration', detail: 'Hold any weighted string — a necklace, a key on a thread — between thumb and forefinger. Suggest it will swing in a specific direction. Microscopic unconscious muscle movements make it actually swing.', visual: 'pendulum-viz', drone: false, pacing: 'focused' },
+    { id: 'tipsy', name: 'Tipsy Without Drinking', tagline: 'Warmth, floating, mild intoxication — sober.', tags: ['demonstration', 'state-shift', 'novelty'], category: 'demonstration', detail: 'State-alteration suggestion producing genuine feelings of mild intoxication: warmth, floating, slight giddy disinhibition. Works because the brain produces physiological markers of a state if it believes it\'s in that state.', visual: 'lissajous', drone: true, pacing: 'permissive' },
+    { id: 'laughter-trigger', name: 'Laughter Trigger', tagline: 'Install a cue that triggers giggles.', tags: ['demonstration', 'post-hypnotic', 'party'], category: 'demonstration', detail: 'Install a specific cue — a word, a number, a gesture — that produces an involuntary giggle fit when it occurs after the session. Classic stage hypnosis staple.', visual: 'pulse', drone: false, pacing: 'permissive' },
+    { id: 'number-amnesia', name: 'Number Amnesia', tagline: 'Forget the number 7. Count 1-10 and skip it.', tags: ['demonstration', 'amnesia', 'classic'], category: 'demonstration', detail: 'Classic demonstration effect. Suggest that a specific number no longer exists for the duration. When you count afterward, you either skip it, pause confused, or have to effortfully search for it.', visual: 'vortex', drone: false, pacing: 'permissive' },
+    { id: 'thermal-hand', name: 'Hot Hand / Cold Hand', tagline: 'Real temperature difference. Measurable.', tags: ['demonstration', 'hallucination', 'somatic'], category: 'demonstration', detail: 'Suggest one hand is in hot water, the other in ice water. Over minutes, the hands develop actual temperature differences through altered blood flow. Testable with a thermometer after the session.', visual: 'pulse', drone: false, pacing: 'focused' },
+    { id: 'stuck-to-seat', name: 'Stuck to Your Seat', tagline: 'Cannot stand up. Try it.', tags: ['demonstration', 'convincer', 'physical'], category: 'demonstration', detail: 'Stage-hypnosis classic. Suggestion that you are firmly attached to your seat and cannot rise. When attempted, you genuinely struggle — deep relaxation plus the suggestion overriding intent to stand.', visual: 'pulse', drone: false, pacing: 'focused' },
+  ];
+ 
+  const PACING_RULES = {
+    monotony: `3-6 word phrases. Repeat a small set of core phrases. No storytelling. [PAUSE 4-8] between phrases. Boring is the mechanism.`,
+    structured: `Follow method structure exactly. [PAUSE 8] after each instruction. Longer phrases (8-15 words) for clarity.`,
+    narrative: `Vivid sensory imagery. Phrases 8-15 words. [PAUSE 3-5] between sentences.`,
+    focused: `All phrases reference the focal sensation. Build slowly. [PAUSE 4-6]. For demonstration methods: direct suggestions ("your hand IS", "you CANNOT") once state is established.`,
+    confusion: `Long sentences with embedded clauses, paradoxes. Occasional brief clarity. [PAUSE 3-6].`,
+    fractionation: `Match cycle pattern. Mark transitions: "And opening!" / "And closing again..." Each induction deeper.`,
+    'eye-roll': `Precise Spiegel sequence. [PAUSE n] for each step. After eye closure: breath/floating language.`,
+    breath: `Voice IS metronome. Count clearly. Real timing 4 in, 7 hold, 8 out.`,
+    'body-scan': `Head-to-toe order. Name, notice, release each part. Phrases 5-10 words. [PAUSE 4-6].`,
+    permissive: `"Perhaps", "you might notice", "in your own time". Phrases 5-12 words. [PAUSE 2-6].`,
+  };
+ 
+  const INTENTION_TYPES = {
+    emotional: { label: 'Emotional state shift', hint: 'An ongoing state. Tip: name it specifically and where in the body.', guidance: `Focus on ONGOING state. Where in the body. Progressive intensification. Self-reinforcing.` },
+    trigger: { label: 'Post-hypnotic trigger', hint: '"When X, then Y". Trigger must actually occur in daily life.', guidance: `EXPLICIT trigger-response link. Trigger specific and occurrable. Response with somatic components. "From now on, each time [TRIGGER], you'll notice [RESPONSE]..." Progressive intensification.` },
+    behavior: { label: 'Behavior change', hint: 'Specify what to DO, not what to stop.', guidance: `Reformulate POSITIVELY. What TO do. Replacement if removing. "You'll find yourself naturally..."` },
+    release: { label: 'Release / let go', hint: 'Letting go of stress, worry, or tension.', guidance: `Containment/release imagery. What's released, where, what replaces. Physical release.` },
+    perception: { label: 'Perception shift', hint: 'Change how you relate to something.', guidance: `New meaning for existing stimulus. Reframe without denying reality.` },
+    anchor: { label: 'Install an anchor', hint: 'Pair a physical cue (touch, gesture) with a state.', guidance: `ANCHOR: specific physical cue paired with specific state. Cue unusual enough to not trigger accidentally. "Each time you touch [anchor], you'll access [state]..."` },
+    convincer: { label: 'Convincer demonstration', hint: 'Prove hypnosis works to yourself with a demonstrable effect.', guidance: `CONVINCER PROTOCOL. UNDENIABLE physical/cognitive effect. Use DIRECT suggestions in present tense ("your hand IS heavier", "fingers ARE drawing together"). Build a clear challenge to test AFTER emergence.` },
+    novelty: { label: 'Novelty effect / party trick', hint: 'Classic stage effect — laughter trigger, name blank, etc.', guidance: `NOVELTY EFFECT. Post-hypnotic suggestion producing a fun, demonstrable effect on cue. Testable. Direct suggestions with specific triggers. Include a test.` },
+    trance: { label: 'Just experience trance', hint: 'No specific goal.', guidance: `No suggestion. "Resting in this state, noticing whatever arises."` },
+  };
+ 
+  const BUILTIN_PERSONAS = [
+    { id: 'driver', name: 'The Driver', tagline: 'Silent companion in the passenger seat.', category: 'contemplative', systemPrompt: `You are a quiet driving companion. The user is in the passenger seat watching the road. Sparse, declarative phrases. Reference the road, the engine, the lines, the hum. Long silences normal. Never ask questions. Never sound urgent. "We", "the road", "out there".` },
+    { id: 'old-master', name: 'The Old Master', tagline: 'Wise teacher. Pithy, paradoxical.', category: 'contemplative', systemPrompt: `You are an old master of meditation and trance. Quiet certainty and economy. Short declarative phrases. Nature metaphors: water, mountain, breath, seasons, stone. You describe what is true. Slightly archaic phrasing fine. Never dramatic.` },
+    { id: 'therapist', name: 'The Therapist', tagline: 'Skilled hypnotherapist. Warm, professional.', category: 'contemplative', systemPrompt: `You are a skilled hypnotherapist with decades of practice. Warm, professional, present. Permissive language: "allowing", "noticing", "discovering", "perhaps you can". Clear psychological framing. No mysticism.` },
+    { id: 'inner-voice', name: 'The Inner Voice', tagline: 'Your own deeper self. Intimate.', category: 'contemplative', systemPrompt: `You ARE the user's own deeper, wiser self speaking back. Use "you" intimately, sometimes "we". Reference what they "already know", "remember now", "have always known". Recognition surfacing. Quiet, intimate.` },
+    { id: 'scientist', name: 'The Scientist', tagline: 'Calm clinician. Demystifying.', category: 'contemplative', systemPrompt: `You are a calm clinician-scientist narrating the process as it happens. "You may notice your eyelids becoming heavier — that's a normal vestibular response to sustained fixation." Precise vocabulary, never mystical. Demystify everything.` },
+    { id: 'mystic', name: 'The Mystic', tagline: 'Spiritual guide. Archetypal language.', category: 'contemplative', systemPrompt: `You are a spiritual guide from contemplative traditions. Archetypal language: thresholds, descent, the deep well, the still point. Breath is sacred. Reverent but not preachy.` },
+    { id: 'showman', name: 'The Showman', tagline: 'Stage hypnotist. Direct, theatrical.', category: 'showman', systemPrompt: `You are a charismatic stage hypnotist with decades on the Vegas circuit. Direct, authoritative, theatrical. Use DIRECT suggestions: "you ARE", "you WILL". Confident tempo. Showmanship. You're an entertainer. "Watch carefully now", "here's what happens". Build anticipation like a magician. "My friend" occasionally.` },
+    { id: 'mentalist', name: 'The Mentalist', tagline: 'Mysterious. Implies reading your mind.', category: 'showman', systemPrompt: `You are a mentalist — an intuitive reader of minds, or so it seems. Speak slowly, with pauses that suggest you know what's coming. Mysterious, measured, never explaining. "I sense that... yes... there it is." Imply you're reading them. "Interesting..." and "I thought so" often.` },
+    { id: 'bartender', name: 'The Bartender', tagline: 'Conspiratorial warmth. Late-night bar vibe.', category: 'showman', systemPrompt: `You are a warm, knowing bartender. Conspiratorial: "alright friend, lean back..." Casual warmth. Voice sounds like late evening in a wood-paneled bar. You take your time, like someone mixing a cocktail carefully. Call the user "friend" and occasionally "pal". Reference having a drink, the quiet of the hour.` },
+    { id: 'carnival-barker', name: 'The Carnival Barker', tagline: 'High-energy. Rhythmic, theatrical.', category: 'showman', systemPrompt: `You are a carnival barker at a traveling show. Rhythmic cadence — musical up-and-down. Hyperbole with a wink: "Step right up now, friend, you're about to experience something truly, genuinely, remarkable." Drop to near-whisper for dramatic moments. Build anticipation relentlessly. "Ladies and gentlemen" and "my friends".` },
+  ];
+ 
+  // ====================================================================
+  // STATE
+  // ====================================================================
+  const TOTAL_STEPS = 5;
+  const state = {
+    currentStep: 1,
+    stepsCompleted: { 1: false, 2: false, 3: false, 4: false, 5: false },
+    personas: [],
+    selectedPersonaId: 'driver',
+    selectedMethodId: 'highway',
+    intentionType: 'trigger',
+    craftedSuggestion: null,
+    fullScript: null,
+    parsedScript: null,
+    droneEnabled: true,
+    length: 'medium',
+    voice: null,
+    speechRate: 0.65,
+    droneVolume: 0.35,
+    paused: false,
+    abortFlag: false,
+    editingPersonaId: null,
+    personaFilter: 'all',
+    methodFilter: 'all',
+  };
+ 
+  const PHASE_DURATIONS = {
+    short:  { settling: 60,  induction: 180, deepener: 60,  work: 240, emergence: 60 },
+    medium: { settling: 90,  induction: 300, deepener: 180, work: 360, emergence: 90 },
+    long:   { settling: 120, induction: 420, deepener: 300, work: 540, emergence: 90 },
+  };
+ 
+  const getMethod = () => METHODS.find(m => m.id === state.selectedMethodId) || METHODS[0];
+  const getPersona = () => state.personas.find(p => p.id === state.selectedPersonaId) || state.personas[0];
+  const PERSONA_KEY = 'stillness_personas_v1';
+  const LIBRARY_KEY = 'stillness_library_v1';
+
+  // IDB-backed storage with localStorage migration
+  let _personaCache = null;
+  let _libraryCache = null;
+
+  async function _initStorage() {
+    // Migrate personas from localStorage → IDB
+    _personaCache = await idbGet(PERSONA_KEY);
+    if (!_personaCache) {
+      try {
+        const lsRaw = localStorage.getItem(PERSONA_KEY);
+        if (lsRaw) { _personaCache = JSON.parse(lsRaw); await idbSet(PERSONA_KEY, _personaCache); localStorage.removeItem(PERSONA_KEY); }
+      } catch {}
+    }
+    if (!Array.isArray(_personaCache)) _personaCache = [];
+
+    // Migrate library from localStorage → IDB
+    _libraryCache = await idbGet(LIBRARY_KEY);
+    if (!_libraryCache) {
+      try {
+        const lsRaw = localStorage.getItem(LIBRARY_KEY);
+        if (lsRaw) { _libraryCache = JSON.parse(lsRaw); await idbSet(LIBRARY_KEY, _libraryCache); localStorage.removeItem(LIBRARY_KEY); }
+      } catch {}
+    }
+    if (!Array.isArray(_libraryCache)) _libraryCache = [];
+
+    // Persist browser storage so IDB isn't cleared
+    if (navigator.storage?.persist) await navigator.storage.persist();
+  }
+
+  const loadCustomPersonas = () => _personaCache || [];
+  const saveCustomPersonas = arr => { _personaCache = arr; idbSet(PERSONA_KEY, arr); return true; };
+  const loadLibrary = () => _libraryCache || [];
+  const saveLibrary = arr => { _libraryCache = arr; idbSet(LIBRARY_KEY, arr); return true; };
+  function refreshPersonas() {
+    const custom = loadCustomPersonas().map(p => ({ ...p, isCustom: true, category: p.category || 'contemplative' }));
+    state.personas = [...BUILTIN_PERSONAS, ...custom];
+  }
+  const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+ 
+  // ====================================================================
+  // STEP MANAGEMENT
+  // ====================================================================
+  function validateStep(n) {
+    if (n === 1) return !!getPersona();
+    if (n === 2) return !!getMethod();
+    if (n === 3) return !!state.craftedSuggestion || state.intentionType === 'trance';
+    if (n === 4) return true;
+    if (n === 5) return !!state.fullScript;
+    return true;
+  }
+ 
+  function goToStep(n) {
+    if (n < 1 || n > TOTAL_STEPS) return;
+    // Forward direction: validate current step
+    if (n > state.currentStep) {
+      for (let i = state.currentStep; i < n; i++) {
+        if (!validateStep(i)) { return; }
+        state.stepsCompleted[i] = true;
+      }
+    }
+    state.currentStep = n;
+    updateStepUI();
+    if (n === 5) { refreshSummary(); }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+ 
+  function updateStepUI() {
+    // Content
+    document.querySelectorAll('.step-content').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.step) === state.currentStep);
+    });
+    // Stepper circles
+    document.querySelectorAll('.step-item').forEach(el => {
+      const n = parseInt(el.dataset.step);
+      el.classList.toggle('current', n === state.currentStep);
+      el.classList.toggle('completed', n < state.currentStep);
+      el.classList.toggle('clickable', n < state.currentStep);
+    });
+    // Connectors
+    document.querySelectorAll('.step-connector').forEach(el => {
+      const [from] = el.dataset.connector.split('-').map(Number);
+      el.classList.toggle('completed', from < state.currentStep);
+    });
+    // Step values under circles
+    document.getElementById('stepValue1').textContent = state.stepsCompleted[1] ? getPersona().name : '';
+    document.getElementById('stepValue2').textContent = state.stepsCompleted[2] ? getMethod().name : '';
+    let s3 = '';
+    if (state.stepsCompleted[3]) {
+      if (state.craftedSuggestion) s3 = 'crafted ✓';
+      else if (state.intentionType === 'trance') s3 = 'pure trance';
+    }
+    document.getElementById('stepValue3').textContent = s3;
+    document.getElementById('stepValue4').textContent = state.stepsCompleted[4] ? state.length : '';
+    document.getElementById('stepValue5').textContent = state.fullScript ? 'ready ✓' : '';
+    // Nav
+    document.getElementById('btnBack').hidden = state.currentStep === 1;
+    document.getElementById('btnNext').hidden = state.currentStep === TOTAL_STEPS;
+    document.getElementById('btnNext').disabled = !validateStep(state.currentStep);
+  }
+ 
+  function refreshSummary() {
+    document.getElementById('summaryGuide').textContent = getPersona().name;
+    document.getElementById('summaryMethod').textContent = getMethod().name;
+    document.getElementById('summaryLength').textContent = state.length.charAt(0).toUpperCase() + state.length.slice(1);
+    const intent = document.getElementById('intentionInput').value.trim() || '(trance only)';
+    document.getElementById('summaryIntention').textContent = intent.length > 60 ? intent.substring(0, 57) + '...' : intent;
+    updateBriefPreview();
+  }
+ 
+  // ====================================================================
+  // RENDERING
+  // ====================================================================
+  function renderPersonaGrid() {
+    const grid = document.getElementById('personaGrid');
+    grid.innerHTML = '';
+    const filtered = state.personaFilter === 'all' ? state.personas : state.personas.filter(p => p.category === state.personaFilter);
+    filtered.forEach(p => {
+      const card = document.createElement('div');
+      card.className = `card category-${p.category || 'contemplative'}` + (p.id === state.selectedPersonaId ? ' selected' : '') + (p.isCustom ? ' is-custom' : '');
+      card.innerHTML = `<div class="card-name">${escapeHtml(p.name)}</div><div class="card-tagline">${escapeHtml(p.tagline)}</div>${p.isCustom ? `<div class="card-actions"><button class="card-action-btn" data-action="edit">edit</button><button class="card-action-btn" data-action="delete">×</button></div>` : ''}`;
+      card.addEventListener('click', e => {
+        if (e.target.dataset.action === 'edit') { e.stopPropagation(); openPersonaEditor(p.id); return; }
+        if (e.target.dataset.action === 'delete') { e.stopPropagation(); deletePersona(p.id); return; }
+        state.selectedPersonaId = p.id;
+        renderPersonaGrid(); renderPersonaDetail(); hideScript(); updateStepUI();
+      });
+      grid.appendChild(card);
+    });
+    const addCard = document.createElement('div');
+    addCard.className = 'card add-new';
+    addCard.innerHTML = '<span>+ create custom</span>';
+    addCard.addEventListener('click', () => openPersonaEditor(null));
+    grid.appendChild(addCard);
+  }
+  function renderPersonaDetail() {
+    const p = getPersona();
+    const el = document.getElementById('personaDetail');
+    if (!p) { el.innerHTML = ''; return; }
+    el.innerHTML = `<div class="detail-title">${escapeHtml(p.name)}</div><div>${escapeHtml(p.systemPrompt)}</div>`;
+  }
+  function renderMethodGrid() {
+    const grid = document.getElementById('methodGrid');
+    grid.innerHTML = '';
+    const filtered = state.methodFilter === 'all' ? METHODS : METHODS.filter(m => m.category === state.methodFilter);
+    filtered.forEach(m => {
+      const card = document.createElement('div');
+      card.className = `card category-${m.category}` + (m.id === state.selectedMethodId ? ' selected' : '');
+      card.innerHTML = `<div class="card-name">${escapeHtml(m.name)}${m.recommended ? `<span class="card-badge">recommended</span>` : ''}</div><div class="card-tagline">${escapeHtml(m.tagline)}</div><div class="card-tags">${m.tags.map(t => `<span class="card-tag">${escapeHtml(t)}</span>`).join('')}</div>`;
+      card.addEventListener('click', () => {
+        state.selectedMethodId = m.id;
+        document.getElementById('droneToggle').checked = m.drone;
+        state.droneEnabled = m.drone;
+        renderMethodGrid(); renderMethodDetail(); hideScript(); updateStepUI();
+      });
+      grid.appendChild(card);
+    });
+  }
+  function renderMethodDetail() {
+    const m = getMethod();
+    const el = document.getElementById('methodDetail');
+    if (!m) { el.innerHTML = ''; return; }
+    el.innerHTML = `<div class="detail-title">${escapeHtml(m.name)}</div><div>${escapeHtml(m.detail)}</div>`;
+  }
+  function updateIntentionHint() {
+    const type = document.getElementById('intentionType').value;
+    state.intentionType = type;
+    document.getElementById('intentionTypeHint').textContent = INTENTION_TYPES[type].hint;
+    hideCrafted();
+    updateStepUI();
+  }
+  function updateBriefPreview() {
+    const p = getPersona(); const m = getMethod();
+    const intention = document.getElementById('intentionInput').value.trim() || '[no theme]';
+    const el = document.getElementById('briefPreview');
+    if (!p) { el.textContent = ''; return; }
+    const action = m.category === 'demonstration' ? `demonstrate the <strong>${escapeHtml(m.name)}</strong> effect` : `use the <strong>${escapeHtml(m.name)}</strong> method`;
+    el.innerHTML = `<strong>Hey ${escapeHtml(p.name)}</strong> — ${action} for a <strong>${escapeHtml(state.length)}</strong> session on the theme: <strong>"${escapeHtml(intention)}"</strong>${state.craftedSuggestion ? ' (with the crafted suggestion embedded)' : ''}. Write the full script.`;
+  }
+ 
+  // ====================================================================
+  // VOICES, AUDIO, VISUAL (unchanged from v7)
+  // ====================================================================
+  function loadVoices() {
+    const voices = speechSynthesis.getVoices();
+    const select = document.getElementById('voiceSelect');
+    select.innerHTML = '';
+    voices.filter(v => v.lang.startsWith('en')).sort((a, b) => {
+      const score = v => { let s = 0; if (/male/i.test(v.name) && !/female/i.test(v.name)) s += 10; if (/uk|british|gb/i.test(v.name + v.lang)) s += 5; if (/google/i.test(v.name)) s += 3; if (/daniel|oliver|arthur|james/i.test(v.name)) s += 4; return -s; };
+      return score(a) - score(b);
+    }).forEach((v, i) => { const opt = document.createElement('option'); opt.value = v.name; opt.textContent = `${v.name} (${v.lang})`; if (i === 0) opt.selected = true; select.appendChild(opt); });
+  }
+  if (typeof speechSynthesis !== 'undefined') { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+  const getSelectedVoice = () => { const name = document.getElementById('voiceSelect').value; return speechSynthesis.getVoices().find(v => v.name === name) || null; };
+ 
+  class AudioDrone {
+    constructor() { this.ctx = null; this.master = null; this.nodes = []; this.running = false; }
+    async start(volume = 0.35) {
+      if (this.running) return;
+      this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (this.ctx.state === 'suspended') await this.ctx.resume();
+      this.master = this.ctx.createGain(); this.master.gain.value = 0; this.master.connect(this.ctx.destination);
+      const bass = this.ctx.createOscillator(); bass.type = 'sine'; bass.frequency.value = 70;
+      const bassGain = this.ctx.createGain(); bassGain.gain.value = 0.4; bass.connect(bassGain).connect(this.master); bass.start(); this.nodes.push(bass, bassGain);
+      const harm = this.ctx.createOscillator(); harm.type = 'sine'; harm.frequency.value = 141;
+      const harmGain = this.ctx.createGain(); harmGain.gain.value = 0.18; harm.connect(harmGain).connect(this.master); harm.start(); this.nodes.push(harm, harmGain);
+      const bufferSize = 2 * this.ctx.sampleRate;
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = noiseBuffer.getChannelData(0); let lastOut = 0;
+      for (let i = 0; i < bufferSize; i++) { const white = Math.random() * 2 - 1; data[i] = (lastOut + (0.02 * white)) / 1.02; lastOut = data[i]; data[i] *= 3.5; }
+      const noise = this.ctx.createBufferSource(); noise.buffer = noiseBuffer; noise.loop = true;
+      const nf = this.ctx.createBiquadFilter(); nf.type = 'lowpass'; nf.frequency.value = 280;
+      const ng = this.ctx.createGain(); ng.gain.value = 0.25;
+      noise.connect(nf).connect(ng).connect(this.master); noise.start(); this.nodes.push(noise, nf, ng);
+      const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.07;
+      const lg = this.ctx.createGain(); lg.gain.value = 0.08;
+      lfo.connect(lg).connect(bassGain.gain); lfo.start(); this.nodes.push(lfo, lg);
+      this.master.gain.linearRampToValueAtTime(volume, this.ctx.currentTime + 4);
+      this.running = true;
+    }
+    setVolume(v) { if (this.master && this.ctx) this.master.gain.linearRampToValueAtTime(v, this.ctx.currentTime + 0.5); }
+    setPhaseFreq(phase) {
+      // Subtle frequency shift per phase to reinforce deepening
+      const freqMap = { settling: 70, induction: 67, deepener: 63, work: 60, emergence: 70 };
+      const target = freqMap[phase] || 70;
+      if (this.ctx && this.nodes[0]?.frequency) {
+        this.nodes[0].frequency.linearRampToValueAtTime(target, this.ctx.currentTime + 4);
+        // Shift harmonic too
+        if (this.nodes[2]?.frequency) this.nodes[2].frequency.linearRampToValueAtTime(target * 2.01, this.ctx.currentTime + 4);
+      }
+    }
+    async stop() {
+      if (!this.running || !this.ctx) return;
+      this.master.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 2);
+      await new Promise(r => setTimeout(r, 2100));
+      this.nodes.forEach(n => { try { n.stop && n.stop(); n.disconnect && n.disconnect(); } catch(e) {} });
+      try { await this.ctx.close(); } catch(e) {}
+      this.ctx = null; this.master = null; this.nodes = []; this.running = false;
+    }
+  }
+  const drone = new AudioDrone();
+ 
+  let highwayRAF = null;
+  let vizRAF = null;
+  let stageResizeObs = null;
+
+  // ── Canvas Visual Renderers (ported from Adaptive Session Studio — MIT) ──
+  function hexToRgb(hex) {
+    let h = hex.replace('#','');
+    if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16);
+    return `${Number.isFinite(r)?r:128},${Number.isFinite(g)?g:128},${Number.isFinite(b)?b:128}`;
+  }
+
+  function renderTunnel(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, rgb = hexToRgb(color), maxR = Math.hypot(cx,cy)*1.1, RINGS = 18;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+    for (let i = RINGS; i >= 0; i--) {
+      const frac = ((i/RINGS) + (t*0.18)) % 1, r = frac*maxR, alpha = (1-frac)*0.65+0.05;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = `rgba(${rgb},${alpha})`; ctx.lineWidth = 1.5+(1-frac)*3; ctx.stroke();
+    }
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*0.15);
+    g.addColorStop(0,`rgba(${rgb},0.7)`); g.addColorStop(1,`rgba(${rgb},0)`);
+    ctx.beginPath(); ctx.arc(cx,cy,maxR*0.15,0,Math.PI*2); ctx.fillStyle = g; ctx.fill();
+  }
+
+  function renderPendulumViz(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, rx = W*0.38, ry = H*0.38, rgb = hexToRgb(color);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(0,0,W,H);
+    ctx.beginPath();
+    for (let i = 0; i <= 2400; i++) {
+      const frac = i/2400, s = (t - frac*4);
+      const x = cx + rx*Math.sin(s*1.23+0.4)*Math.cos(s*0.71);
+      const y = cy + ry*Math.sin(s*0.97+1.1)*Math.cos(s*1.03);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = `rgba(${rgb},0.6)`; ctx.lineWidth = 1.2; ctx.stroke();
+  }
+
+  function renderVortex(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, rgb = hexToRgb(color), maxR = Math.min(W,H)*0.44, ARMS = 6;
+    ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(0,0,W,H);
+    for (let arm = 0; arm < ARMS; arm++) {
+      const baseAngle = (arm/ARMS)*Math.PI*2 + t*0.6;
+      ctx.beginPath();
+      for (let i = 0; i <= 300; i++) {
+        const frac = i/300, angle = baseAngle + frac*Math.PI*3;
+        const r = frac * maxR * (0.8 + 0.2*Math.sin(t*1.5+arm));
+        const x = cx + r*Math.cos(angle), y = cy + r*Math.sin(angle);
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = `rgba(${rgb},${0.35+0.25*Math.sin(t+arm)})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+  }
+
+  function renderMandala(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, petals = 8, rgb = hexToRgb(color);
+    ctx.fillStyle = 'rgba(0,0,0,0.06)'; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle = `rgba(${rgb},0.7)`; ctx.shadowColor = color; ctx.shadowBlur = 12;
+    for (let layer = 0; layer < 4; layer++) {
+      const R = (layer+1)*Math.min(W,H)*0.1;
+      const spin = t*(layer%2===0 ? 0.2 : -0.15) + layer*0.4;
+      ctx.globalAlpha = 0.6-layer*0.1; ctx.lineWidth = 1.8-layer*0.3;
+      for (let p = 0; p < petals; p++) {
+        const base = (p/petals)*Math.PI*2 + spin, tip = base + Math.PI/petals;
+        ctx.beginPath(); ctx.moveTo(cx,cy);
+        ctx.quadraticCurveTo(cx+R*1.5*Math.cos(base+0.3),cy+R*1.5*Math.sin(base+0.3),cx+R*Math.cos(tip),cy+R*Math.sin(tip));
+        ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(cx,cy,R*0.4,0,Math.PI*2); ctx.stroke();
+    }
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  }
+
+  function renderLissajous(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, R = Math.min(W,H)*0.42, rgb = hexToRgb(color);
+    ctx.strokeStyle = `rgba(${rgb},0.85)`; ctx.lineWidth = 1.8;
+    ctx.shadowColor = color; ctx.shadowBlur = 10;
+    const a = 3, b = 2, delta = t*0.4;
+    ctx.beginPath();
+    for (let i = 0; i <= 600; i++) {
+      const th = (i/600)*Math.PI*2;
+      const x = cx + R*Math.sin(a*th+delta), y = cy + R*Math.sin(b*th);
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.globalAlpha = 0.08; ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  }
+
+  function renderColorWash(ctx, W, H, t, color) {
+    const hue = (t*12 + parseInt(color.replace('#',''),16)%360) % 360, hue2 = (hue+40)%360;
+    const grad = ctx.createRadialGradient(W*0.4,H*0.4,0,W/2,H/2,Math.max(W,H)*0.7);
+    grad.addColorStop(0,`hsla(${hue},70%,35%,1)`);
+    grad.addColorStop(0.5,`hsla(${hue2},60%,20%,1)`);
+    grad.addColorStop(1,`hsla(${(hue+180)%360},50%,8%,1)`);
+    ctx.fillStyle = grad; ctx.fillRect(0,0,W,H);
+    const vig = ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+    vig.addColorStop(0,'transparent'); vig.addColorStop(1,'rgba(0,0,0,0.5)');
+    ctx.fillStyle = vig; ctx.fillRect(0,0,W,H);
+  }
+
+  function renderCanvasPulse(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, rgb = hexToRgb(color), maxR = Math.min(W,H)*0.46;
+    ctx.fillStyle = '#000'; ctx.fillRect(0,0,W,H);
+    for (let i = 0; i < 6; i++) {
+      const phase = (t*0.45 + i/6) % 1, r = phase*maxR, alpha = (1-phase)*0.7;
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.strokeStyle = `rgba(${rgb},${alpha})`; ctx.lineWidth = 2+(1-phase)*5; ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(cx,cy,10+4*Math.sin(t*3),0,Math.PI*2);
+    ctx.fillStyle = `rgba(${rgb},0.85)`; ctx.fill();
+  }
+
+  const VIZ_RENDERERS = {
+    tunnel: renderTunnel,
+    'pendulum-viz': renderPendulumViz,
+    vortex: renderVortex,
+    mandala: renderMandala,
+    lissajous: renderLissajous,
+    colorwash: renderColorWash,
+    'canvas-pulse': renderCanvasPulse,
+  };
+
+  // Phase-based speed multipliers for visuals
+  const PHASE_VIZ_SPEED = { settling: 0.5, induction: 1.0, deepener: 0.7, work: 0.9, emergence: 0.6 };
+
+  function setupVisual(visualType) {
+    const stage = document.getElementById('stage');
+    // Clean up previous visuals
+    if (vizRAF) { cancelAnimationFrame(vizRAF); vizRAF = null; }
+    if (highwayRAF) { cancelAnimationFrame(highwayRAF); highwayRAF = null; }
+    if (stageResizeObs) { stageResizeObs.disconnect(); stageResizeObs = null; }
+    Array.from(stage.children).forEach(c => {
+      if (!c.classList.contains('fixation-dot') && !c.classList.contains('audio-indicator')
+        && !c.classList.contains('persona-indicator') && !c.classList.contains('method-indicator')
+        && !c.classList.contains('session-progress-wrap')) c.remove();
+    });
+
+    // Canvas-based renderer (new visual types)
+    const renderer = VIZ_RENDERERS[visualType];
+    if (renderer) {
+      const canvas = document.createElement('canvas'); canvas.className = 'highway-canvas';
+      canvas.width = stage.clientWidth; canvas.height = stage.clientHeight;
+      stage.insertBefore(canvas, stage.firstChild);
+      const ctx = canvas.getContext('2d');
+      const color = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#6b94b8';
+      // Resize observer
+      stageResizeObs = new ResizeObserver(() => { canvas.width = stage.clientWidth; canvas.height = stage.clientHeight; });
+      stageResizeObs.observe(stage);
+      (function draw(ts) {
+        if (state.abortFlag) return;
+        const speed = PHASE_VIZ_SPEED[state._currentPhase] || 1.0;
+        renderer(ctx, canvas.width, canvas.height, (ts/1000)*speed, color);
+        vizRAF = requestAnimationFrame(draw);
+      })(0);
+      return;
+    }
+
+    if (visualType === 'highway') {
+      const canvas = document.createElement('canvas'); canvas.className = 'highway-canvas';
+      canvas.width = stage.clientWidth; canvas.height = stage.clientHeight;
+      stage.insertBefore(canvas, stage.firstChild);
+      const ctx = canvas.getContext('2d');
+      // Resize observer
+      stageResizeObs = new ResizeObserver(() => { canvas.width = stage.clientWidth; canvas.height = stage.clientHeight; });
+      stageResizeObs.observe(stage);
+      const lines = []; for (let i = 0; i < 8; i++) lines.push({ y: (canvas.height / 8) * i, speed: 1.2 + Math.random() * 0.4 });
+      (function draw() {
+        if (state.abortFlag) return;
+        const W = canvas.width, H = canvas.height;
+        ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(0,0,W,H);
+        ctx.strokeStyle = 'rgba(212,220,232,0.55)'; ctx.lineWidth = 4;
+        lines.forEach(l => { l.y += l.speed; if (l.y > H + 40) l.y = -40; ctx.globalAlpha = Math.min(1,(l.y/H)*1.2)*0.7; ctx.beginPath(); ctx.moveTo(W/2, l.y); ctx.lineTo(W/2, l.y+28); ctx.stroke(); });
+        ctx.globalAlpha = 1;
+        const g = ctx.createRadialGradient(W/2, H*0.38, 20, W/2, H*0.38, H*0.5); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(1,'rgba(0,0,0,0.5)');
+        ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+        highwayRAF = requestAnimationFrame(draw);
+      })();
+    } else if (visualType === 'spiral') {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+      svg.setAttribute('class','spiral-svg'); svg.setAttribute('viewBox','0 0 100 100');
+      let d = 'M 50 50 ';
+      for (let t=0;t<30;t+=0.1) { const r=0.5*t; d += `L ${(50+r*Math.cos(t)).toFixed(2)} ${(50+r*Math.sin(t)).toFixed(2)} `; }
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d',d); p.setAttribute('stroke','rgba(107,148,184,0.4)'); p.setAttribute('stroke-width','0.4'); p.setAttribute('fill','none');
+      svg.appendChild(p); stage.insertBefore(svg, stage.firstChild);
+    } else {
+      // Default: CSS pulse rings
+      const wrap = document.createElement('div'); wrap.className = 'pulse-rings';
+      for (let i = 0; i < 3; i++) { const r = document.createElement('div'); r.className = 'pulse-ring'; wrap.appendChild(r); }
+      stage.insertBefore(wrap, stage.firstChild);
+    }
+  }
+  const stopVisuals = () => {
+    if (highwayRAF) cancelAnimationFrame(highwayRAF); highwayRAF = null;
+    if (vizRAF) cancelAnimationFrame(vizRAF); vizRAF = null;
+    if (stageResizeObs) { stageResizeObs.disconnect(); stageResizeObs = null; }
+  };
+ 
+  // ====================================================================
+  // PERSONA EDITOR
+  // ====================================================================
+  function openPersonaEditor(id) {
+    state.editingPersonaId = id;
+    document.getElementById('personaModalTitle').textContent = id ? 'edit persona' : 'create custom persona';
+    if (id) {
+      const p = state.personas.find(x => x.id === id);
+      document.getElementById('personaFormName').value = p.name;
+      document.getElementById('personaFormTagline').value = p.tagline;
+      document.getElementById('personaFormPrompt').value = p.systemPrompt;
+      document.getElementById('personaFormCategory').value = p.category || 'contemplative';
+    } else {
+      document.getElementById('personaFormName').value = '';
+      document.getElementById('personaFormTagline').value = '';
+      document.getElementById('personaFormPrompt').value = '';
+      document.getElementById('personaFormCategory').value = 'contemplative';
+    }
+    document.getElementById('personaModal').classList.add('visible');
+  }
+  const closePersonaEditor = () => { document.getElementById('personaModal').classList.remove('visible'); state.editingPersonaId = null; };
+  function savePersonaFromForm() {
+    const name = document.getElementById('personaFormName').value.trim();
+    const tagline = document.getElementById('personaFormTagline').value.trim();
+    const systemPrompt = document.getElementById('personaFormPrompt').value.trim();
+    const category = document.getElementById('personaFormCategory').value || 'contemplative';
+    if (!name || !systemPrompt) { notify.warn('Name and voice instruction required.'); return; }
+    let custom = loadCustomPersonas();
+    if (state.editingPersonaId) {
+      custom = custom.map(p => p.id === state.editingPersonaId ? { ...p, name, tagline, systemPrompt, category } : p);
+    } else {
+      const id = 'custom_' + Date.now();
+      custom.push({ id, name, tagline: tagline || '(custom)', systemPrompt, category });
+      state.selectedPersonaId = id;
+    }
+    if (!saveCustomPersonas(custom)) { notify.error('Could not save: browser storage may be full.'); return; }
+    refreshPersonas(); renderPersonaGrid(); renderPersonaDetail(); closePersonaEditor();
+  }
+  function deletePersona(id) {
+    if (!confirm('Delete this persona?')) return;
+    saveCustomPersonas(loadCustomPersonas().filter(p => p.id !== id));
+    if (state.selectedPersonaId === id) state.selectedPersonaId = 'driver';
+    refreshPersonas(); renderPersonaGrid(); renderPersonaDetail();
+  }
+ 
+  // ====================================================================
+  // CRAFTER
+  // ====================================================================
+  async function craftSuggestion() {
+    const rough = document.getElementById('intentionInput').value.trim();
+    if (!rough && state.intentionType !== 'trance') { notify.warn('Describe what you want first.'); return; }
+    const type = INTENTION_TYPES[state.intentionType];
+    const btn = document.getElementById('craftBtn');
+    btn.disabled = true; btn.textContent = 'crafting...';
+ 
+    const instruction = `You are a master hypnotherapist converting a user's rough intention into a technically-precise hypnotic suggestion.
+ 
+TYPE: ${type.label}
+USER'S ROUGH DESCRIPTION: "${rough}"
+ 
+UNIVERSAL RULES:
+• Second person ("you")
+• Presupposition ("you'll notice" not "you will feel") [For convincer/novelty: direct present-tense fine]
+• Somatic anchoring (tie states to physical sensations)
+• Automaticity ("automatically", "without effort")
+• Progressive intensification
+• Future-pacing ("from now on")
+• Positive construction only
+• Specificity
+ 
+TYPE-SPECIFIC GUIDANCE:
+${type.guidance}
+ 
+Output EXACTLY this JSON, no other text, no markdown fences:
+{
+  "craftedSuggestion": "Complete hypnotic suggestion, 3-5 sentences, ready to deliver verbatim. Second person.",
+  "trigger": "Specific trigger phrase, or 'ongoing state'",
+  "coreResponse": "Specific response/effect, 3-7 words",
+  "reinforcementPhrases": ["Three or four short variants (5-10 words)"],
+  "explanation": "ONE sentence on the technique used"
+}`;
+ 
+    try {
+      const data = await root.aiTextPlugin({ instruction, startWith: '{', stopSequences: ['\n\n\n'], hideStartWith: true });
+      if (data.stopReason === 'error') throw new Error('AI generation encountered an error.');
+      let text = (data.generatedText || '').trim();
+      if (!text.startsWith('{')) text = '{' + text;
+      const lb = text.lastIndexOf('}'); if (lb > -1) text = text.substring(0, lb + 1);
+      state.craftedSuggestion = JSON.parse(text);
+      showCrafted();
+      updateStepUI();
+    } catch (e) { console.error(e); notify.warn('Crafting failed: ' + e.message + '. Try again.'); }
+    finally { btn.disabled = false; btn.textContent = 'craft hypnotic suggestion →'; }
+  }
+  function showCrafted() {
+    const c = state.craftedSuggestion;
+    document.getElementById('craftedText').textContent = c.craftedSuggestion;
+    document.getElementById('craftedText').style.display = 'block';
+    document.getElementById('craftedEditable').style.display = 'none';
+    document.getElementById('saveEditBtn').style.display = 'none';
+    document.getElementById('craftedMeta').innerHTML = `<strong>trigger:</strong> ${escapeHtml(c.trigger||'—')}  ·  <strong>effect:</strong> ${escapeHtml(c.coreResponse||'—')}<br><strong>technique:</strong> ${escapeHtml(c.explanation||'—')}`;
+    document.getElementById('craftedPreview').classList.add('visible');
+  }
+  function hideCrafted() { state.craftedSuggestion = null; document.getElementById('craftedPreview').classList.remove('visible'); hideScript(); }
+  function toggleEditCrafted() {
+    const t = document.getElementById('craftedText'), e = document.getElementById('craftedEditable'), s = document.getElementById('saveEditBtn');
+    e.value = state.craftedSuggestion.craftedSuggestion;
+    t.style.display = 'none'; e.style.display = 'block'; s.style.display = 'inline-block';
+  }
+  function saveEditCrafted() {
+    state.craftedSuggestion.craftedSuggestion = document.getElementById('craftedEditable').value.trim();
+    showCrafted(); hideScript();
+  }
+ 
+  // ====================================================================
+  // SCRIPT GEN
+  // ====================================================================
+  async function generateFullScript() {
+    // Guard: if user has edited the script textarea, confirm before clobbering
+    const editedText = document.getElementById('scriptText').value.trim();
+    if (state.fullScript && editedText && editedText !== state.fullScript.trim()) {
+      if (!confirm('Your manual edits to the script will be discarded. Regenerate anyway?')) return;
+    }
+    const persona = getPersona();
+    const method = getMethod();
+    const durations = PHASE_DURATIONS[state.length];
+    const rough = document.getElementById('intentionInput').value.trim();
+    const wpm = 50;
+    const targetWords = Object.fromEntries(Object.entries(durations).map(([k,v]) => [k, Math.round(v * wpm / 60)]));
+ 
+    const btn = document.getElementById('generateScriptBtn');
+    btn.disabled = true; btn.textContent = 'generating script... (~20–40 seconds)';
+ 
+    const craftedBlock = state.craftedSuggestion ? `
+CRAFTED HYPNOTIC SUGGESTION (deliver verbatim in WORK phase):
+"${state.craftedSuggestion.craftedSuggestion}"
+TRIGGER: ${state.craftedSuggestion.trigger}
+CORE EFFECT: ${state.craftedSuggestion.coreResponse}
+REINFORCEMENT VARIANTS: ${JSON.stringify(state.craftedSuggestion.reinforcementPhrases)}
+ 
+⚠️ In WORK phase: deliver the full crafted suggestion AT LEAST TWICE.
+⚠️ In EMERGENCE, BEFORE count-up: state core effect one last time as lasting anchor.
+` : '';
+ 
+    const demoBlock = method.category === 'demonstration' ? `
+⚠️ DEMONSTRATION METHOD — goal is a tangible, noticeable effect the user can verify.
+• DIRECT present-tense suggestions ("your hand IS becoming heavy")
+• In WORK phase: BUILD the effect progressively
+• Include a TEST at end of WORK or start of EMERGENCE — instruct the user to attempt the "impossible" action
+` : '';
+ 
+    const instruction = `You are ${persona.name}. ${persona.systemPrompt}
+ 
+A user has requested a self-hypnosis session. Write the COMPLETE spoken script from start to finish — word-for-word, as you would deliver it aloud — in your voice.
+ 
+METHOD: ${method.name}
+${method.detail}
+ 
+PACING:
+${PACING_RULES[method.pacing]}
+ 
+${demoBlock}
+ 
+SESSION THEME: "${rough || 'general trance experience'}"
+${craftedBlock}
+ 
+═══ PHASE STRUCTURE — write ALL five phases with markers ═══
+ 
+===SETTLING=== (~${targetWords.settling} words)
+Orient the user. Open naturally in your persona's voice — don't say "hello" or "welcome".
+ 
+===INDUCTION=== (~${targetWords.induction} words)
+Move from ordinary awareness toward trance using this method.
+ 
+===DEEPENER=== (~${targetWords.deepener} words)
+Take them deeper. ${state.craftedSuggestion ? 'Foreshadow one reinforcement variant.' : ''}
+ 
+===WORK=== (~${targetWords.work} words)
+${method.category === 'demonstration' ? 'BUILD the demonstration effect progressively.' : ''}
+${state.craftedSuggestion ? 'Deliver the crafted suggestion verbatim, multiple times, with reinforcement variants between.' : 'Deepening and open awareness.'}
+ 
+===EMERGENCE=== (~${targetWords.emergence} words)
+${method.category === 'demonstration' ? 'FIRST: deliver the TEST — invite user to attempt the "impossible" action. Give them time. THEN release and count up.' : state.craftedSuggestion ? 'FINAL ANCHOR first, THEN count-up.' : 'Count-up to fully alert.'}
+ 
+═══ OUTPUT ═══
+• Use the ===PHASE=== markers exactly
+• Insert [PAUSE n] markers liberally (n = seconds)
+• Output ONLY the script with markers — no preamble, no commentary
+• Stay fully in the persona's voice
+ 
+Begin:`;
+ 
+    try {
+      const data = await root.aiTextPlugin({ instruction, startWith: '===SETTLING===', stopSequences: ['\n\n\n\n', '[END OF SCRIPT]', '\n\n===END==='], hideStartWith: true });
+      if (data.stopReason === 'error') throw new Error('AI returned an error. Try again.');
+      const text = (data.generatedText || '').trim();
+      if (!text || text.length < 100) throw new Error('Script too short or empty');
+      const fullScript = '===SETTLING===' + (text.startsWith('\n') ? '' : '\n') + text;
+      state.fullScript = fullScript;
+      state.parsedScript = parseScript(fullScript);
+      showScript();
+      updateStepUI();
+      notify.success('Script generated — review and edit below.');
+    } catch (e) {
+      console.error(e);
+      notify.error('Script generation failed: ' + e.message);
+    } finally { btn.disabled = false; btn.textContent = 'generate full script'; }
+  }
+ 
+  function parseScript(text) {
+    const phases = { settling: '', induction: '', deepener: '', work: '', emergence: '' };
+    const markers = [
+      { key: 'settling', rx: /===\s*SETTLING\s*===/i },
+      { key: 'induction', rx: /===\s*INDUCTION\s*===/i },
+      { key: 'deepener', rx: /===\s*DEEPENER\s*===/i },
+      { key: 'work', rx: /===\s*WORK\s*===/i },
+      { key: 'emergence', rx: /===\s*EMERGENCE\s*===/i },
+    ];
+    const positions = markers.map(m => { const match = text.match(m.rx); return { key: m.key, index: match ? match.index + match[0].length : -1, start: match ? match.index : -1 }; });
+    const found = positions.filter(p => p.index !== -1).sort((a,b) => a.index - b.index);
+    for (let i = 0; i < found.length; i++) {
+      const cur = found[i];
+      const end = i + 1 < found.length ? found[i+1].start : text.length;
+      phases[cur.key] = text.substring(cur.index, end).trim();
+    }
+    return phases;
+  }
+ 
+  function showScript() {
+    document.getElementById('scriptText').value = state.fullScript;
+    // Strip phase markers and pause markers before counting actual spoken words
+    const spokenOnly = state.fullScript
+      .replace(/===\s*\w+\s*===/gi, ' ')
+      .replace(/\[PAUSE\s+\d+\]/gi, ' ');
+    const words = spokenOnly.split(/\s+/).filter(w => w.length > 0).length;
+    const pauses = (state.fullScript.match(/\[PAUSE\s+\d+\]/gi) || []).length;
+    const pauseSecs = (state.fullScript.match(/\[PAUSE\s+(\d+)\]/gi) || []).reduce((sum, m) => sum + parseInt(m.match(/\d+/)[0], 10), 0);
+    document.getElementById('scriptStats').innerHTML = `<strong>${words}</strong> words · <strong>${pauses}</strong> pauses (${pauseSecs}s) · estimated: <strong>${Math.round(words / 50 + pauseSecs / 60)} min</strong><br>Edit below before starting.`;
+    document.getElementById('scriptPreview').classList.add('visible');
+  }
+  function hideScript() { state.fullScript = null; state.parsedScript = null; document.getElementById('scriptPreview').classList.remove('visible'); updateStepUI(); }
+ 
+  // ====================================================================
+  // LIBRARY
+  // ====================================================================
+  function renderLibrary() {
+    const list = document.getElementById('libraryList');
+    const lib = loadLibrary();
+    if (lib.length === 0) { list.innerHTML = '<div class="library-empty">no saved scripts yet</div>'; return; }
+    list.innerHTML = '';
+    lib.forEach(entry => {
+      const item = document.createElement('div');
+      item.className = 'library-item';
+      const date = new Date(entry.savedAt).toLocaleDateString();
+      item.innerHTML = `<div class="lib-name">${escapeHtml(entry.name)}</div><div class="lib-meta">${escapeHtml(entry.persona)} · ${escapeHtml(entry.method)} · ${date}</div><button class="lib-del">×</button>`;
+      item.addEventListener('click', e => {
+        if (e.target.classList.contains('lib-del')) {
+          e.stopPropagation();
+          if (confirm('Delete "' + entry.name + '"?')) { saveLibrary(loadLibrary().filter(x => x.id !== entry.id)); renderLibrary(); }
+          return;
+        }
+        loadScriptFromLibrary(entry);
+      });
+      list.appendChild(item);
+    });
+  }
+  function loadScriptFromLibrary(entry) {
+    state.fullScript = entry.script;
+    state.parsedScript = parseScript(entry.script);
+    if (entry.personaId) state.selectedPersonaId = entry.personaId;
+    if (entry.methodId) state.selectedMethodId = entry.methodId;
+    if (entry.length) { state.length = entry.length; document.getElementById('lengthSelect').value = entry.length; }
+    // Restore intention trail so user can navigate back to step 3 without breaking validation
+    if (entry.craftedSuggestion) state.craftedSuggestion = entry.craftedSuggestion;
+    if (entry.roughIntention !== undefined) document.getElementById('intentionInput').value = entry.roughIntention;
+    if (entry.intentionType) {
+      state.intentionType = entry.intentionType;
+      document.getElementById('intentionType').value = entry.intentionType;
+      document.getElementById('intentionTypeHint').textContent = (INTENTION_TYPES[entry.intentionType] || {}).hint || '';
+    }
+    if (state.craftedSuggestion) showCrafted();
+    // Jump straight to step 5
+    state.stepsCompleted = { 1: true, 2: true, 3: true, 4: true, 5: false };
+    state.currentStep = 5;
+    renderPersonaGrid(); renderPersonaDetail(); renderMethodGrid(); renderMethodDetail();
+    refreshSummary(); showScript(); updateStepUI();
+  }
+ 
+  function openSaveScriptModal() {
+    if (!state.fullScript) { notify.warn('Generate a script first.'); return; }
+    const suggested = (document.getElementById('intentionInput').value.trim() || 'session') + ' · ' + getMethod().name;
+    document.getElementById('saveScriptName').value = suggested;
+    document.getElementById('saveScriptModal').classList.add('visible');
+  }
+  const closeSaveScriptModal = () => document.getElementById('saveScriptModal').classList.remove('visible');
+  function confirmSaveScript() {
+    const name = document.getElementById('saveScriptName').value.trim();
+    if (!name) return;
+    const script = document.getElementById('scriptText').value.trim();
+    const entry = {
+      id: 'lib_' + Date.now(),
+      name,
+      script,
+      persona: getPersona().name,
+      personaId: state.selectedPersonaId,
+      method: getMethod().name,
+      methodId: state.selectedMethodId,
+      length: state.length,
+      savedAt: Date.now(),
+      // Persist the intention trail so loading a script restores all wizard state
+      craftedSuggestion: state.craftedSuggestion,
+      roughIntention: document.getElementById('intentionInput').value,
+      intentionType: state.intentionType,
+    };
+    const lib = loadLibrary(); lib.unshift(entry);
+    if (!saveLibrary(lib)) { notify.error('Could not save: browser storage may be full.'); return; }
+    renderLibrary(); closeSaveScriptModal();
+  }
+ 
+  // ====================================================================
+  // SESSION PLAYER
+  // ====================================================================
+  async function startSession() {
+    // Emergency cooldown check
+    if (state._cooldownUntil && Date.now() < state._cooldownUntil) {
+      const remaining = Math.ceil((state._cooldownUntil - Date.now()) / 1000);
+      notify.warn(`Please wait ${remaining}s before starting another session.`);
+      return;
+    }
+
+    const scriptText = document.getElementById('scriptText').value.trim();
+    if (!scriptText) { notify.warn('Generate or paste a script first.'); return; }
+
+    // Check TTS availability
+    const voiceList = (typeof speechSynthesis !== 'undefined') ? speechSynthesis.getVoices() : [];
+    if (voiceList.length === 0) {
+      if (!confirm('No text-to-speech voices are available in this browser. The session will run silently (visuals only). Continue anyway?')) return;
+    }
+
+    state.fullScript = scriptText;
+    state.parsedScript = parseScript(scriptText);
+    state.voice = getSelectedVoice();
+    state.abortFlag = false;
+    state._sessionStartTime = Date.now();
+    state._currentPhase = 'settling';
+    const method = getMethod();
+
+    document.getElementById('setup-wizard').style.display = 'none';
+    document.getElementById('session-screen').style.display = 'block';
+    document.body.classList.add('in-session');
+    document.getElementById('personaIndicator').textContent = '· ' + getPersona().name.toLowerCase() + ' ·';
+    document.getElementById('methodIndicator').textContent = '· ' + method.name.toLowerCase() + ' ·';
+
+    // Reset progress UI
+    document.getElementById('sessionProgressFill').style.width = '0%';
+    document.querySelectorAll('.phase-dot').forEach(d => { d.classList.remove('active','done'); });
+
+    setupVisual(method.visual);
+    if (state.droneEnabled) {
+      try {
+        await drone.start(state.droneVolume);
+        document.getElementById('audioIndicator').textContent = '· drone ·';
+      } catch(e) {
+        notify.info('Audio drone unavailable — tap the screen to enable audio, then try again.');
+      }
+    }
+
+    // Session time tracker
+    state._timeInterval = setInterval(() => {
+      if (state.paused) return;
+      const elapsed = Math.round((Date.now() - state._sessionStartTime) / 1000);
+      const mins = Math.floor(elapsed / 60);
+      const secs = elapsed % 60;
+      const timeEl = document.getElementById('sessionTime');
+      if (timeEl) timeEl.textContent = `${mins}:${String(secs).padStart(2,'0')} elapsed`;
+    }, 1000);
+
+    const phases = ['settling','induction','deepener','work','emergence'];
+    const phaseLabels = { settling: 'settling', induction: 'going inward', deepener: 'deeper', work: method.category === 'demonstration' ? 'the effect' : 'transformation', emergence: 're-alerting' };
+
+    for (let pi = 0; pi < phases.length; pi++) {
+      const phase = phases[pi];
+      if (state.abortFlag) break;
+      const phaseText = state.parsedScript[phase];
+      if (!phaseText || phaseText.trim().length < 10) continue;
+
+      // Update phase state
+      state._currentPhase = phase;
+      document.getElementById('phaseIndicator').textContent = phaseLabels[phase];
+
+      // Update phase dots
+      document.querySelectorAll('.phase-dot').forEach((d, i) => {
+        if (i < pi) d.classList.add('done');
+        d.classList.toggle('active', i === pi);
+      });
+
+      // Update progress bar
+      const pct = Math.round((pi / phases.length) * 100);
+      document.getElementById('sessionProgressFill').style.width = pct + '%';
+
+      // Modulate drone frequency per phase
+      if (state.droneEnabled && drone.running) drone.setPhaseFreq(phase);
+
+      const cleanText = phaseText.replace(/^===\s*\w+\s*===\s*/i, '').trim();
+      await speakScript(cleanText);
+    }
+
+    // Complete progress bar
+    document.getElementById('sessionProgressFill').style.width = '100%';
+    document.querySelectorAll('.phase-dot').forEach(d => { d.classList.remove('active'); d.classList.add('done'); });
+
+    if (!state.abortFlag) finishSession(false);
+  }
+
+  // Interruptible sleep — checks abortFlag & paused state in 200ms chunks so
+  // pause/end during a [PAUSE n] marker responds quickly instead of waiting
+  // for the whole sleep to finish.
+  async function interruptibleSleep(totalMs, bypassAbort = false) {
+    const CHUNK = 200;
+    let elapsed = 0;
+    while (elapsed < totalMs) {
+      if (!bypassAbort && state.abortFlag) return;
+      while (state.paused) { await sleep(CHUNK); }
+      const remaining = totalMs - elapsed;
+      await sleep(Math.min(CHUNK, remaining));
+      elapsed += CHUNK;
+    }
+  }
+
+  async function speakScript(text, bypassAbort = false) {
+    // Sanitize: strip any malformed [pause...] or [PAUSE...] markers that
+    // wouldn't match our canonical regex. Prevents TTS from reading "bracket
+    // pause bracket" aloud.
+    const canonical = text.replace(/\[\s*pause[^\]]*\]/gi, (m) => {
+      const num = m.match(/\d+/);
+      return num ? `[PAUSE ${num[0]}]` : '';
+    });
+
+    const parts = canonical.split(/\[PAUSE\s+(\d+)\]/i);
+    const display = document.getElementById('textDisplay');
+    for (let i = 0; i < parts.length; i++) {
+      if (!bypassAbort && state.abortFlag) return;
+      while (state.paused) await sleep(200);
+      if (i % 2 === 0) {
+        const segment = parts[i].trim();
+        if (!segment) continue;
+        const chunks = segment.split(/(?<=[.!?])\s+/).filter(s => s.trim());
+        for (const chunk of chunks) {
+          if (!bypassAbort && state.abortFlag) return;
+          while (state.paused) await sleep(200);
+          display.style.opacity = 0;
+          await sleep(350);
+          display.textContent = chunk;
+          display.style.opacity = 0.5;
+          await speak(chunk);
+        }
+      } else {
+        const seconds = parseInt(parts[i], 10) || 4;
+        await interruptibleSleep(seconds * 1000, bypassAbort);
+      }
+    }
+  }
+
+  function speak(text) {
+    return new Promise(resolve => {
+      if (!('speechSynthesis' in window)) { setTimeout(resolve, text.length * 80); return; }
+      // Chrome bug workaround: cancel + re-init if synthesis has been going too long
+      if (speechSynthesis.speaking && !speechSynthesis.paused) {
+        speechSynthesis.cancel();
+        // Brief gap to let Chrome reset its internal state
+        setTimeout(() => _doSpeak(text, resolve), 50);
+      } else {
+        _doSpeak(text, resolve);
+      }
+    });
+  }
+  function _doSpeak(text, resolve) {
+    const u = new SpeechSynthesisUtterance(text);
+    u.voice = state.voice || getSelectedVoice();
+    u.rate = state.speechRate; u.pitch = 0.85; u.volume = 1.0;
+    let settled = false;
+    const done = () => { if (!settled) { settled = true; resolve(); } };
+    u.onend = done;
+    u.onerror = done;
+    speechSynthesis.speak(u);
+    // Watchdog: if TTS hasn't fired onend within a generous timeout, force-resolve
+    const maxWait = Math.max(8000, text.length * 200);
+    setTimeout(() => {
+      if (!settled && !speechSynthesis.speaking) done();
+    }, maxWait);
+    // Hard ceiling to prevent infinite hangs
+    setTimeout(done, Math.max(15000, text.length * 250));
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  async function finishSession(wasEmergency = false) {
+    clearInterval(state._timeInterval);
+    await drone.stop(); stopVisuals(); speechSynthesis.cancel();
+    document.body.classList.remove('in-session');
+    document.getElementById('session-screen').style.display = 'none';
+    document.getElementById('post-screen').style.display = 'block';
+
+    // Build post-session summary
+    const elapsed = state._sessionStartTime ? Math.round((Date.now() - state._sessionStartTime) / 1000) : 0;
+    const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+    const persona = getPersona(), method = getMethod();
+    const summaryEl = document.getElementById('postSummary');
+    summaryEl.innerHTML = `
+      <h3>session summary</h3>
+      <div class="post-row"><span class="post-label">guide</span><span class="post-value">${escapeHtml(persona.name)}</span></div>
+      <div class="post-row"><span class="post-label">method</span><span class="post-value">${escapeHtml(method.name)}</span></div>
+      <div class="post-row"><span class="post-label">duration</span><span class="post-value">${mins}:${String(secs).padStart(2,'0')}</span></div>
+      <div class="post-row"><span class="post-label">completion</span><span class="post-value">${wasEmergency ? 'ended early (re-alerted)' : 'completed'}</span></div>
+    `;
+
+    // Show trigger/suggestion reminder if relevant
+    const triggerBox = document.getElementById('postTriggerBox');
+    if (state.craftedSuggestion && state.craftedSuggestion.trigger && state.craftedSuggestion.trigger !== 'ongoing state') {
+      triggerBox.innerHTML = `
+        <div class="post-trigger">
+          <div class="trigger-label">your trigger</div>
+          <div class="trigger-text">${escapeHtml(state.craftedSuggestion.trigger)}</div>
+          <div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">→ ${escapeHtml(state.craftedSuggestion.coreResponse || '')}</div>
+        </div>`;
+    } else if (state.craftedSuggestion && state.craftedSuggestion.coreResponse) {
+      triggerBox.innerHTML = `
+        <div class="post-trigger">
+          <div class="trigger-label">suggestion installed</div>
+          <div class="trigger-text">${escapeHtml(state.craftedSuggestion.coreResponse)}</div>
+        </div>`;
+    } else {
+      triggerBox.innerHTML = '';
+    }
+
+    // For demonstration methods, remind user of the test
+    if (method.category === 'demonstration' && !wasEmergency) {
+      triggerBox.innerHTML += `<div class="post-trigger" style="margin-top:8px; border-color: var(--accent-purple);">
+        <div class="trigger-label" style="color:var(--accent-purple);">test now</div>
+        <div class="trigger-text" style="font-size:0.85rem;">Try the ${escapeHtml(method.name)} effect now. The suggestion should still be active.</div>
+      </div>`;
+    }
+
+    // Emergency cooldown (30s after emergency end)
+    if (wasEmergency) {
+      state._cooldownUntil = Date.now() + 30000;
+    }
+  }
+
+  // Persona-specific re-alert scripts
+  const PERSONA_REALERTS = {
+    'driver': "Easing off the gas now. [PAUSE 2] The road brightening. [PAUSE 3] Windows coming down. [PAUSE 3] Cool air on your face. [PAUSE 3] Engine off. Eyes opening. Fully here.",
+    'old-master': "And now... returning. [PAUSE 2] Like water finding its level. [PAUSE 3] Breath deepening. [PAUSE 3] Body remembering itself. [PAUSE 3] Eyes open. Present. Clear.",
+    'therapist': "And gently now, allowing yourself to return to full awareness. [PAUSE 2] Noticing the room around you. [PAUSE 3] Wiggling fingers and toes. [PAUSE 3] Taking a refreshing breath. [PAUSE 3] Eyes opening. Feeling alert and well.",
+    'inner-voice': "Coming back now. [PAUSE 2] You already know how. [PAUSE 3] Feel your hands. [PAUSE 3] The weight of your body. [PAUSE 3] Open your eyes. You're here.",
+    'scientist': "Initiating the return sequence. [PAUSE 2] Autonomic functions normalizing. [PAUSE 3] Motor cortex re-engaging. [PAUSE 3] Deep breath — diaphragm expanding. [PAUSE 3] Eyes open. Full alertness restored.",
+    'mystic': "Ascending now from the deep place. [PAUSE 2] Rising through the still waters. [PAUSE 3] Breath carrying you upward. [PAUSE 3] The light of day returning. [PAUSE 3] Eyes opening. Returned.",
+    'showman': "And THREE — energy returning! [PAUSE 2] TWO — eyes fluttering! [PAUSE 2] ONE — wide awake! [PAUSE 2] There you are, fully alert, feeling fantastic. Welcome back, my friend.",
+    'mentalist': "And I can sense you're already returning. [PAUSE 2] Yes... there it is. [PAUSE 3] Awareness flooding back. [PAUSE 3] Eyes opening. [PAUSE 2] Fully present. Interesting, isn't it?",
+    'bartender': "Alright friend, last call. [PAUSE 2] Time to come back now. [PAUSE 3] Stretch those fingers out. [PAUSE 3] Take a good deep breath. [PAUSE 3] Eyes open. Welcome back, pal.",
+    'carnival-barker': "And we're bringing you back, ladies and gentlemen! [PAUSE 2] Three — feeling the energy! [PAUSE 2] Two — almost there! [PAUSE 2] One — eyes WIDE open! Fully alert! Give yourself a round of applause!",
+  };
+
+  function emergencyEnd() {
+    state.abortFlag = true;
+    speechSynthesis.cancel();
+    // Use persona-matched re-alert if available
+    const persona = getPersona();
+    const reAlert = PERSONA_REALERTS[persona.id] ||
+      "And now... [PAUSE 2] bringing your awareness back. [PAUSE 3] Wiggling fingers and toes. [PAUSE 3] Taking a deeper breath. [PAUSE 3] Opening your eyes. Fully alert.";
+    speakScript(reAlert, /* bypassAbort */ true).then(() => finishSession(true));
+  }
+  function togglePause() {
+    state.paused = !state.paused;
+    document.getElementById('pauseBtn').textContent = state.paused ? 'resume' : 'pause';
+    if (state.paused) speechSynthesis.pause(); else speechSynthesis.resume();
+  }
+ 
+  // ====================================================================
+  // HANDLERS + INIT
+  // ====================================================================
+  // Stepper clicks (only backward)
+  document.getElementById('stepper').addEventListener('click', e => {
+    const item = e.target.closest('.step-item');
+    if (!item || !item.classList.contains('clickable')) return;
+    goToStep(parseInt(item.dataset.step));
+  });
+  document.getElementById('btnNext').addEventListener('click', () => goToStep(state.currentStep + 1));
+  document.getElementById('btnBack').addEventListener('click', () => goToStep(state.currentStep - 1));
+ 
+  // Filter tabs
+  document.getElementById('personaFilterTabs').addEventListener('click', e => {
+    if (!e.target.dataset.filter) return;
+    state.personaFilter = e.target.dataset.filter;
+    document.querySelectorAll('#personaFilterTabs .filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === state.personaFilter));
+    renderPersonaGrid();
+  });
+  document.getElementById('methodFilterTabs').addEventListener('click', e => {
+    if (!e.target.dataset.filter) return;
+    state.methodFilter = e.target.dataset.filter;
+    document.querySelectorAll('#methodFilterTabs .filter-tab').forEach(t => t.classList.toggle('active', t.dataset.filter === state.methodFilter));
+    renderMethodGrid();
+  });
+ 
+  // Step 3
+  document.getElementById('intentionType').addEventListener('change', updateIntentionHint);
+  document.getElementById('intentionInput').addEventListener('input', () => { hideCrafted(); updateStepUI(); });
+  document.getElementById('craftBtn').addEventListener('click', craftSuggestion);
+  document.getElementById('recraftBtn').addEventListener('click', craftSuggestion);
+  document.getElementById('editCraftedBtn').addEventListener('click', toggleEditCrafted);
+  document.getElementById('saveEditBtn').addEventListener('click', saveEditCrafted);
+ 
+  // Step 4
+  document.getElementById('lengthSelect').addEventListener('change', () => { state.length = document.getElementById('lengthSelect').value; hideScript(); });
+  document.getElementById('droneToggle').addEventListener('change', e => state.droneEnabled = e.target.checked);
+  document.getElementById('droneVolume').addEventListener('input', e => { state.droneVolume = parseInt(e.target.value,10)/100; drone.setVolume(state.droneVolume); });
+  document.getElementById('speechRate').addEventListener('input', e => state.speechRate = parseInt(e.target.value,10)/100);
+ 
+  // Step 5
+  document.getElementById('generateScriptBtn').addEventListener('click', generateFullScript);
+  document.getElementById('regenScriptBtn').addEventListener('click', generateFullScript);
+  document.getElementById('saveScriptBtn').addEventListener('click', openSaveScriptModal);
+  document.getElementById('saveScriptCancelBtn').addEventListener('click', closeSaveScriptModal);
+  document.getElementById('saveScriptConfirmBtn').addEventListener('click', confirmSaveScript);
+  document.getElementById('saveScriptModal').addEventListener('click', e => { if (e.target.id === 'saveScriptModal') closeSaveScriptModal(); });
+  document.getElementById('beginBtn').addEventListener('click', startSession);
+ 
+  // Session
+  document.getElementById('pauseBtn').addEventListener('click', togglePause);
+  document.getElementById('endBtn').addEventListener('click', emergencyEnd);
+  document.getElementById('restartBtn').addEventListener('click', () => location.reload());
+
+  // Post-session save
+  document.getElementById('postSaveBtn').addEventListener('click', () => {
+    if (!state.fullScript) { notify.warn('No script to save.'); return; }
+    openSaveScriptModal();
+  });
+
+  // Voice preview
+  document.getElementById('voicePreviewBtn').addEventListener('click', () => {
+    const voice = getSelectedVoice();
+    const rate = state.speechRate;
+    const samples = [
+      "And now... noticing the weight of your hands... just resting there...",
+      "Each breath carrying you a little deeper now... that's right...",
+      "The sound of my voice becoming the only thing that matters...",
+    ];
+    const sample = samples[Math.floor(Math.random() * samples.length)];
+    if (!('speechSynthesis' in window)) { notify.info('Text-to-speech is not available in this browser.'); return; }
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(sample);
+    u.voice = voice; u.rate = rate; u.pitch = 0.85; u.volume = 1.0;
+    speechSynthesis.speak(u);
+  });
+
+  // Persona modal
+  document.getElementById('personaCancelBtn').addEventListener('click', closePersonaEditor);
+  document.getElementById('personaSaveBtn').addEventListener('click', savePersonaFromForm);
+  document.getElementById('personaModal').addEventListener('click', e => { if (e.target.id === 'personaModal') closePersonaEditor(); });
+
+  // Init — async to wait for IDB storage migration
+  (async function init() {
+    await _initStorage();
+    refreshPersonas();
+    renderPersonaGrid();
+    renderPersonaDetail();
+    renderMethodGrid();
+    renderMethodDetail();
+    renderLibrary();
+    updateIntentionHint();
+    document.getElementById('droneToggle').checked = getMethod().drone;
+    state.droneEnabled = getMethod().drone;
+    updateStepUI();
+
+    // AI preload (delayed on mobile to avoid slowing page load)
+    if (typeof root !== 'undefined' && root.aiTextPlugin) {
+      if (window.innerWidth < 500) setTimeout(() => root.aiTextPlugin({ preload: true }), 5000);
+      else root.aiTextPlugin({ preload: true });
+    }
+  })();
+</script>
