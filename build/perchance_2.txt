@@ -604,6 +604,89 @@ body.in-session .footer {
     transition: all 0.2s;
   }
   .voice-preview-btn:hover { color: var(--text); border-color: var(--accent-soft); }
+  .voice-preview-btn.active { color: var(--accent); border-color: var(--accent); }
+
+  /* ============ PREVIEW CONTROLS (shared) ============ */
+  .preview-row {
+    display: flex; align-items: center; gap: 6px; margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .preview-btn {
+    background: var(--bg-softer); border: 1px solid #2a3340;
+    color: var(--text-dim); border-radius: 6px;
+    padding: 5px 10px; font-size: 0.75rem; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .preview-btn:hover { color: var(--text); border-color: var(--accent-soft); }
+  .preview-btn.active { color: var(--accent); border-color: var(--accent); }
+  .preview-btn.stop { color: #c06058; border-color: #5a2a28; }
+  .preview-btn.stop:hover { color: #e07068; border-color: #7a3a38; }
+  .preview-hint { font-size: 0.68rem; color: var(--text-faint); }
+
+  /* ============ VIZ MINI PREVIEWER ============ */
+  .viz-preview-wrap {
+    margin-top: 8px; border-radius: 8px; overflow: hidden;
+    border: 1px solid #1a2230; background: #000;
+    position: relative;
+  }
+  .viz-preview-canvas {
+    display: block; width: 100%; height: 120px;
+    border-radius: 8px;
+  }
+  .viz-preview-label {
+    position: absolute; bottom: 6px; left: 8px;
+    font-size: 0.6rem; color: var(--text-faint);
+    letter-spacing: 0.08em; text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  /* ============ HEATMAP CALENDAR ============ */
+  .heatmap { display: flex; gap: 2px; overflow-x: auto; padding: 4px 0; }
+  .heatmap-col { display: flex; flex-direction: column; gap: 2px; }
+  .heatmap-cell {
+    width: 10px; height: 10px; border-radius: 2px;
+    background: #0d1117; border: 1px solid #161b22;
+  }
+  .heatmap-cell[data-count="1"] { background: #0e4429; border-color: #0e4429; }
+  .heatmap-cell[data-count="2"] { background: #006d32; border-color: #006d32; }
+  .heatmap-cell[data-count="3"] { background: #26a641; border-color: #26a641; }
+  .heatmap-cell[data-count="4"] { background: #39d353; border-color: #39d353; }
+
+  /* ============ QUICK-START PRESETS ============ */
+  .preset-grid { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .preset-card {
+    flex: 1; min-width: 120px; max-width: 180px;
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 8px; padding: 10px 12px; cursor: pointer;
+    transition: all 0.2s; text-align: center;
+  }
+  .preset-card:hover { border-color: var(--accent-soft); background: #131c28; }
+  .preset-card .preset-icon { font-size: 1.4rem; margin-bottom: 4px; }
+  .preset-card .preset-name { font-size: 0.78rem; color: var(--text); font-weight: 500; }
+  .preset-card .preset-desc { font-size: 0.62rem; color: var(--text-faint); margin-top: 2px; }
+
+  /* ============ ONBOARDING TOUR ============ */
+  .tour-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(5,5,8,0.82); backdrop-filter: blur(2px);
+  }
+  .tour-card {
+    position: fixed; z-index: 1001;
+    width: min(340px, 88vw); background: #0c1018;
+    border: 1px solid var(--accent-soft); border-radius: 12px;
+    padding: 18px 20px 14px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    transition: opacity 0.2s;
+  }
+  .tour-card h3 { font-size: 0.82rem; color: var(--text); margin: 0 0 8px; font-weight: 500; }
+  .tour-card p { font-size: 0.75rem; color: var(--text-dim); line-height: 1.6; margin: 0 0 14px; }
+  .tour-dots { display: flex; gap: 4px; justify-content: center; margin-bottom: 12px; }
+  .tour-dot { width: 5px; height: 5px; border-radius: 3px; background: #1a2230; }
+  .tour-dot.active { width: 16px; background: var(--accent); }
+  .tour-actions { display: flex; justify-content: space-between; align-items: center; }
+  .tour-skip { background: none; border: none; color: var(--text-faint); font-size: 0.68rem; cursor: pointer; padding: 0; }
+  .tour-next { background: var(--accent-soft); border: none; color: var(--text); border-radius: 6px; padding: 6px 16px; font-size: 0.75rem; cursor: pointer; font-weight: 500; }
 
   /* ============ MOOD CHECK-IN ============ */
   .mood-row {
@@ -841,8 +924,14 @@ body.in-session .footer {
       </div>
       <div class="card-grid" id="personaGrid"></div>
       <div class="detail-panel" id="personaDetail"></div>
- 
-      <details style="margin-top: 20px;">
+
+      <details style="margin-top: 20px;" open>
+        <summary>quick-start presets</summary>
+        <div class="sublabel" style="margin-bottom:6px;">One click — sets guide, method, intention, soundscape, and length.</div>
+        <div class="preset-grid" id="presetGrid"></div>
+      </details>
+
+      <details style="margin-top: 10px;">
         <summary>saved scripts (load a previous session)</summary>
         <div class="library-list" id="libraryList"></div>
       </details>
@@ -850,6 +939,7 @@ body.in-session .footer {
       <details style="margin-top: 10px;">
         <summary>session history & stats</summary>
         <div id="sessionStatsPanel"></div>
+        <div id="heatmapWrap" style="margin-top:10px;"></div>
         <div class="history-list" id="sessionHistoryList"></div>
       </details>
 
@@ -999,34 +1089,52 @@ body.in-session .footer {
         <div class="sublabel" id="lengthHint"></div>
       </div>
 
-      <!-- ── VOICE ── -->
+      <!-- ── NARRATOR ── -->
       <div class="field-group">
-        <label class="field-label">voice</label>
+        <label class="field-label">narrator voice</label>
         <select id="voiceSelect"></select>
-        <div class="voice-preview-row">
-          <button class="voice-preview-btn" id="voicePreviewBtn">▶ preview voice</button>
-          <span class="sublabel" style="margin:0;">Hear a sample with current settings.</span>
+        <div class="sublabel" id="voiceInfo" style="margin-top:4px;"></div>
+        <div class="preview-row">
+          <button class="preview-btn" id="voicePreviewBtn">▶ preview</button>
+          <button class="preview-btn stop" id="voiceStopBtn" style="display:none;">⏹ stop</button>
+          <span class="preview-hint">Hear a sample with your speed/pitch/volume settings.</span>
         </div>
       </div>
 
-      <!-- ── AUDIO ── -->
+      <!-- ── AUDIO & SOUNDSCAPE ── -->
       <div class="field-group">
-        <label class="field-label">audio & soundscape</label>
+        <label class="field-label">soundscape</label>
         <select id="soundscapeSelect">
           <option value="none">None — voice only</option>
-          <option value="drone" selected>Engine drone — low hum, road-noise feel</option>
-          <option value="rain">Rain — droplets, soft rumble</option>
-          <option value="ocean">Ocean waves — slow, rhythmic surf</option>
-          <option value="fire">Crackling fire — warmth, pops</option>
-          <option value="bowls">Singing bowls — periodic resonant strikes</option>
-          <option value="heartbeat">Heartbeat — steady lub-dub rhythm</option>
-          <option value="binaural">Binaural beats (θ 6Hz) — requires headphones</option>
-          <option value="pink">Pink noise — soft, even hiss</option>
-          <option value="brown">Brown noise — deep, warm rumble</option>
-          <option value="white">White noise — full-spectrum static</option>
+          <optgroup label="Natural">
+            <option value="rain">Rain — droplets, soft rumble</option>
+            <option value="ocean">Ocean waves — slow, rhythmic surf</option>
+            <option value="fire">Crackling fire — warmth, pops</option>
+          </optgroup>
+          <optgroup label="Tonal">
+            <option value="drone" selected>Engine drone — low hum, road-noise feel</option>
+            <option value="bowls">Singing bowls — periodic resonant strikes</option>
+            <option value="heartbeat">Heartbeat — steady lub-dub rhythm</option>
+            <option value="binaural">Binaural beats (θ 6Hz) — requires headphones</option>
+          </optgroup>
+          <optgroup label="Noise">
+            <option value="pink">Pink noise — soft, even hiss</option>
+            <option value="brown">Brown noise — deep, warm rumble</option>
+            <option value="white">White noise — full-spectrum static</option>
+          </optgroup>
         </select>
         <div class="sublabel" id="soundscapeHint">Procedurally generated — never loops. Use headphones for binaural.</div>
-        <div class="toggle-row" style="margin-top:8px;"><label for="droneVolume">Soundscape volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"><span class="hint" id="droneVolVal" style="min-width:28px;text-align:right;">35</span></div>
+        <div class="preview-row">
+          <button class="preview-btn" id="soundPreviewBtn">▶ preview</button>
+          <button class="preview-btn stop" id="soundStopBtn" style="display:none;">⏹ stop</button>
+          <span class="preview-hint" id="soundPreviewHint">Listen to a 10-second preview.</span>
+        </div>
+      </div>
+
+      <!-- ── AUDIO LEVELS ── -->
+      <div class="field-group">
+        <label class="field-label">audio levels</label>
+        <div class="toggle-row"><label for="droneVolume">Soundscape volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"><span class="hint" id="droneVolVal" style="min-width:28px;text-align:right;">35</span></div>
         <div class="toggle-row"><label for="speechRate">Voice speed</label><input type="range" id="speechRate" min="50" max="100" value="65"><span class="hint" id="speechRateVal" style="min-width:28px;text-align:right;">0.65×</span></div>
         <div class="toggle-row"><label for="voicePitch">Voice pitch</label><input type="range" id="voicePitch" min="50" max="120" value="85"><span class="hint" id="voicePitchVal" style="min-width:28px;text-align:right;">0.85</span></div>
         <div class="toggle-row"><label for="voiceVolume">Narration volume</label><input type="range" id="voiceVolume" min="0" max="100" value="100"><span class="hint" id="voiceVolVal" style="min-width:28px;text-align:right;">100</span></div>
@@ -1068,6 +1176,15 @@ body.in-session .footer {
             <option value="none">None — black screen only</option>
           </optgroup>
         </select>
+        <div class="viz-preview-wrap" id="vizPreviewWrap" style="display:none;">
+          <canvas class="viz-preview-canvas" id="vizPreviewCanvas"></canvas>
+          <div class="viz-preview-label" id="vizPreviewLabel"></div>
+        </div>
+        <div class="preview-row">
+          <button class="preview-btn" id="vizPreviewBtn">▶ preview</button>
+          <button class="preview-btn stop" id="vizStopBtn" style="display:none;">⏹ stop</button>
+          <span class="preview-hint">Live preview of the selected effect.</span>
+        </div>
       </div>
 
       <!-- ── HUD ELEMENTS ── -->
@@ -1671,6 +1788,8 @@ body.in-session .footer {
       }
     }
     state.currentStep = n;
+    // Stop all previews when leaving the Configure step
+    if (typeof _stopAllPreviews === 'function') _stopAllPreviews();
     updateStepUI();
     if (n === 4) { renderConfigSummary(); }
     if (n === 5) { refreshSummary(); }
@@ -1920,7 +2039,6 @@ body.in-session .footer {
     const voices = speechSynthesis.getVoices();
     const select = document.getElementById('voiceSelect');
     select.innerHTML = '';
-    // Quality scoring: neural/natural voices first, then Google, then local
     const scored = voices.filter(v => v.lang.startsWith('en')).map(v => {
       let s = 0;
       const n = v.name + ' ' + v.lang;
@@ -1932,18 +2050,46 @@ body.in-session .footer {
       if (/uk|british|gb/i.test(n)) s += 5;
       if (/daniel|oliver|arthur|james|aaron/i.test(n)) s += 4;
       if (/espeak|compact/i.test(n)) s -= 50;
-      if (v.localService) s += 2; // slight local preference for reliability
-      return { voice: v, score: s };
+      if (v.localService) s += 2;
+      const tier = s >= 85 ? 'neural' : s >= 50 ? 'cloud' : s > 0 ? 'local' : 'basic';
+      return { voice: v, score: s, tier };
     }).sort((a, b) => b.score - a.score);
 
-    scored.forEach((item, i) => {
-      const opt = document.createElement('option');
-      opt.value = item.voice.name;
-      const badge = item.score >= 90 ? ' ★' : item.score >= 50 ? ' ●' : '';
-      opt.textContent = `${item.voice.name} (${item.voice.lang})${badge}`;
-      if (i === 0) opt.selected = true;
-      select.appendChild(opt);
+    // Group by tier
+    const tiers = { neural: '★ Neural / Premium', cloud: '● Cloud', local: 'Local', basic: 'Basic' };
+    const groups = {};
+    scored.forEach(item => {
+      if (!groups[item.tier]) groups[item.tier] = [];
+      groups[item.tier].push(item);
     });
+
+    let first = true;
+    for (const tier of ['neural', 'cloud', 'local', 'basic']) {
+      if (!groups[tier] || groups[tier].length === 0) continue;
+      const og = document.createElement('optgroup');
+      og.label = tiers[tier];
+      groups[tier].forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.voice.name;
+        opt.textContent = item.voice.name + ' (' + item.voice.lang + ')';
+        opt.dataset.tier = tier;
+        opt.dataset.local = item.voice.localService ? '1' : '0';
+        if (first) { opt.selected = true; first = false; }
+        og.appendChild(opt);
+      });
+      select.appendChild(og);
+    }
+    updateVoiceInfo();
+  }
+  function updateVoiceInfo() {
+    const select = document.getElementById('voiceSelect');
+    const info = document.getElementById('voiceInfo');
+    if (!info || !select.selectedOptions[0]) return;
+    const opt = select.selectedOptions[0];
+    const tier = opt.dataset.tier || 'local';
+    const local = opt.dataset.local === '1';
+    const labels = { neural: '★ Neural voice — highest quality', cloud: '● Cloud voice — good quality, slight latency', local: 'Local voice — instant, lower quality', basic: 'Basic voice — functional' };
+    info.textContent = (labels[tier] || '') + (local ? ' · runs offline' : ' · requires internet');
   }
   if (typeof speechSynthesis !== 'undefined') { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
   const getSelectedVoice = () => { const name = document.getElementById('voiceSelect').value; return speechSynthesis.getVoices().find(v => v.name === name) || null; };
@@ -2220,6 +2366,8 @@ body.in-session .footer {
     const cx = W/2, cy = H/2, maxR = Math.min(W,H)*0.38, rgb = hexToRgb(color);
     // 4-7-8 cycle: 4s inhale, 7s hold, 8s exhale = 19s total
     const cycle = 19, phase = t % cycle;
+    // Haptic at cycle start (once per 19s)
+    if (phase < 0.05 && t > 0.1) vibrateBreath();
     let frac; // 0-1 breath position
     if (phase < 4) frac = phase / 4; // inhale: expand
     else if (phase < 11) frac = 1; // hold: full
@@ -2474,6 +2622,89 @@ body.in-session .footer {
 
   // Phase-based speed multipliers for visuals
   const PHASE_VIZ_SPEED = { settling: 0.5, induction: 1.0, deepener: 0.7, work: 0.9, emergence: 0.6 };
+
+  // ====================================================================
+  // PREVIEW ENGINES (Configure tab — separate from session playback)
+  // ====================================================================
+
+  // Soundscape preview — uses a separate SoundscapeEngine instance
+  const _previewDrone = new SoundscapeEngine();
+  let _previewDroneTimeout = null;
+
+  async function previewSoundscape() {
+    const type = document.getElementById('soundscapeSelect')?.value;
+    if (!type || type === 'none') { notify.info('Select a soundscape first.'); return; }
+    await stopSoundscapePreview();
+    try {
+      await _previewDrone.start(state.droneVolume, type);
+      document.getElementById('soundPreviewBtn').style.display = 'none';
+      document.getElementById('soundStopBtn').style.display = '';
+      document.getElementById('soundPreviewHint').textContent = 'playing ' + type + '...';
+      // Auto-stop after 10 seconds
+      _previewDroneTimeout = setTimeout(() => stopSoundscapePreview(), 10000);
+    } catch(e) { notify.warn('Could not start audio preview.'); }
+  }
+
+  async function stopSoundscapePreview() {
+    clearTimeout(_previewDroneTimeout);
+    await _previewDrone.stop();
+    document.getElementById('soundPreviewBtn').style.display = '';
+    document.getElementById('soundStopBtn').style.display = 'none';
+    document.getElementById('soundPreviewHint').textContent = 'Listen to a 10-second preview.';
+  }
+
+  // Viz preview — renders to the mini canvas with its own rAF loop
+  let _vizPreviewRaf = null;
+  let _vizPreviewStart = 0;
+
+  function startVizPreview() {
+    stopVizPreview();
+    const sel = document.getElementById('vizSelect')?.value;
+    const vizKey = sel === 'auto' ? (getMethod().visual) : sel;
+    const renderer = VIZ_RENDERERS[vizKey];
+    if (!renderer) {
+      // Non-canvas types (highway, spiral, pulse, none) — show a label instead
+      const wrap = document.getElementById('vizPreviewWrap');
+      if (wrap) { wrap.style.display = 'block'; }
+      const canvas = document.getElementById('vizPreviewCanvas');
+      if (canvas) { const ctx = canvas.getContext('2d'); ctx.fillStyle = '#000'; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.fillStyle = '#4a6a84'; ctx.font = '13px -apple-system, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(vizKey === 'none' ? 'Black screen — no visual' : vizKey + ' (non-canvas preview)', canvas.width/2, canvas.height/2); }
+      document.getElementById('vizPreviewLabel').textContent = vizKey;
+      document.getElementById('vizPreviewBtn').style.display = 'none';
+      document.getElementById('vizStopBtn').style.display = '';
+      return;
+    }
+
+    const wrap = document.getElementById('vizPreviewWrap');
+    const canvas = document.getElementById('vizPreviewCanvas');
+    if (!wrap || !canvas) return;
+    wrap.style.display = 'block';
+    canvas.width = canvas.offsetWidth || 300;
+    canvas.height = 120;
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const color = '#6b94b8';
+    _vizPreviewStart = performance.now();
+    document.getElementById('vizPreviewLabel').textContent = vizKey;
+    document.getElementById('vizPreviewBtn').style.display = 'none';
+    document.getElementById('vizStopBtn').style.display = '';
+
+    function frame() {
+      const t = (performance.now() - _vizPreviewStart) / 1000;
+      try { renderer(ctx, canvas.width, canvas.height, t, color); } catch(e) {}
+      _vizPreviewRaf = requestAnimationFrame(frame);
+    }
+    _vizPreviewRaf = requestAnimationFrame(frame);
+  }
+
+  function stopVizPreview() {
+    if (_vizPreviewRaf) { cancelAnimationFrame(_vizPreviewRaf); _vizPreviewRaf = null; }
+    const wrap = document.getElementById('vizPreviewWrap');
+    if (wrap) wrap.style.display = 'none';
+    document.getElementById('vizPreviewBtn').style.display = '';
+    document.getElementById('vizStopBtn').style.display = 'none';
+  }
+
+  // Voice preview state
+  let _voicePreviewing = false;
 
   function setupVisual(visualType) {
     const stage = document.getElementById('stage');
@@ -3091,6 +3322,9 @@ Begin:`;
       if (!confirm('No text-to-speech voices are available in this browser. The session will run silently (visuals only). Continue anyway?')) return;
     }
 
+    // Stop any configure-tab previews before starting session
+    if (typeof _stopAllPreviews === 'function') _stopAllPreviews();
+
     state.fullScript = scriptText;
     state.parsedScript = parseScript(scriptText);
     state.voice = getSelectedVoice();
@@ -3164,6 +3398,9 @@ Begin:`;
         notify.info('Audio unavailable — tap the screen to enable audio, then try again.');
       }
     }
+
+    // Haptic marker — double-pulse on session start (Android/Chrome)
+    vibrateSessionMarker();
 
     // Wake Lock — prevent screen timeout during session
     try {
@@ -3414,6 +3651,10 @@ Begin:`;
     history.unshift(sessionRecord);
     if (history.length > 50) history.length = 50; // Keep last 50
     await idbSet('stillness_history_v1', history);
+    renderHeatmap(); // Refresh activity heatmap
+
+    // Haptic marker — double-pulse on session end
+    vibrateSessionMarker();
 
     // Build post-session summary
     const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
@@ -3817,22 +4058,215 @@ Begin:`;
     openSaveScriptModal();
   });
 
-  // Voice preview
+  // Voice preview with stop
   document.getElementById('voicePreviewBtn').addEventListener('click', () => {
     const voice = getSelectedVoice();
-    const rate = state.speechRate;
     const samples = [
       "And now... noticing the weight of your hands... just resting there...",
       "Each breath carrying you a little deeper now... that's right...",
       "The sound of my voice becoming the only thing that matters...",
+      "Drifting comfortably... nowhere to be... nothing to do...",
     ];
     const sample = samples[Math.floor(Math.random() * samples.length)];
     if (!('speechSynthesis' in window)) { notify.info('Text-to-speech is not available in this browser.'); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(sample);
-    u.voice = voice; u.rate = rate; u.pitch = state.voicePitch || 0.85; u.volume = state.voiceVolume ?? 1.0;
+    u.voice = voice; u.rate = state.speechRate; u.pitch = state.voicePitch || 0.85; u.volume = state.voiceVolume ?? 1.0;
+    u.onend = () => { _voicePreviewing = false; document.getElementById('voicePreviewBtn').style.display = ''; document.getElementById('voiceStopBtn').style.display = 'none'; };
+    u.onerror = u.onend;
     speechSynthesis.speak(u);
+    _voicePreviewing = true;
+    document.getElementById('voicePreviewBtn').style.display = 'none';
+    document.getElementById('voiceStopBtn').style.display = '';
   });
+  document.getElementById('voiceStopBtn')?.addEventListener('click', () => {
+    speechSynthesis.cancel();
+    _voicePreviewing = false;
+    document.getElementById('voicePreviewBtn').style.display = '';
+    document.getElementById('voiceStopBtn').style.display = 'none';
+  });
+
+  // Voice select change → update info
+  document.getElementById('voiceSelect').addEventListener('change', updateVoiceInfo);
+
+  // Soundscape preview
+  document.getElementById('soundPreviewBtn')?.addEventListener('click', previewSoundscape);
+  document.getElementById('soundStopBtn')?.addEventListener('click', stopSoundscapePreview);
+
+  // Viz preview
+  document.getElementById('vizPreviewBtn')?.addEventListener('click', startVizPreview);
+  document.getElementById('vizStopBtn')?.addEventListener('click', stopVizPreview);
+
+  // Stop all previews when leaving Step 4
+  const _stopAllPreviews = () => { stopVizPreview(); stopSoundscapePreview(); if (_voicePreviewing) { speechSynthesis.cancel(); _voicePreviewing = false; document.getElementById('voicePreviewBtn').style.display = ''; document.getElementById('voiceStopBtn').style.display = 'none'; } };
+
+  // ====================================================================
+  // CAPABILITY DETECTION (from Studio capabilities.js)
+  // ====================================================================
+  const caps = { tts: false, webAudio: false, wakeLock: false, fullscreen: false, vibration: false };
+  function detectCaps() {
+    caps.tts = 'speechSynthesis' in window;
+    caps.webAudio = 'AudioContext' in window || 'webkitAudioContext' in window;
+    caps.wakeLock = 'wakeLock' in navigator;
+    caps.fullscreen = 'requestFullscreen' in document.documentElement || 'webkitRequestFullscreen' in document.documentElement;
+    caps.vibration = 'vibrate' in navigator;
+    const missing = [];
+    if (!caps.tts) missing.push('Text-to-speech is not available — sessions will be visual only.');
+    if (!caps.webAudio) missing.push('Web Audio is not available — no soundscapes.');
+    if (missing.length) notify.warn(missing.join(' '));
+  }
+
+  // ====================================================================
+  // QUICK-START PRESETS
+  // ====================================================================
+  const PRESETS = [
+    { id: 'sleep', icon: '🌙', name: 'Sleep', desc: 'Drift off naturally',
+      persona: 'therapist', method: 'progressive', intention: 'sleep', length: 'long', soundscape: 'ocean' },
+    { id: 'calm', icon: '🍃', name: 'Quick Calm', desc: '5-min anxiety reset',
+      persona: 'inner-voice', method: 'breath-478', intention: 'emotional', length: 'quick', soundscape: 'rain' },
+    { id: 'focus', icon: '🎯', name: 'Deep Focus', desc: 'Lock in for hours',
+      persona: 'scientist', method: 'betty-erickson', intention: 'focus', length: 'medium', soundscape: 'brown' },
+    { id: 'demo', icon: '✋', name: 'Demo Night', desc: 'Prove it works',
+      persona: 'showman', method: 'magnetic-hands', intention: 'convincer', length: 'short', soundscape: 'drone' },
+    { id: 'pain', icon: '💊', name: 'Pain Relief', desc: 'Dial discomfort down',
+      persona: 'bodyworker', method: 'pain-dial', intention: 'pain', length: 'medium', soundscape: 'bowls' },
+    { id: 'micro', icon: '⚡', name: 'Micro Reset', desc: '2-min state shift',
+      persona: 'driver', method: 'highway', intention: 'trance', length: 'micro', soundscape: 'drone' },
+  ];
+
+  function renderPresets() {
+    const grid = document.getElementById('presetGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+    PRESETS.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'preset-card';
+      card.innerHTML = `<div class="preset-icon">${p.icon}</div><div class="preset-name">${escapeHtml(p.name)}</div><div class="preset-desc">${escapeHtml(p.desc)}</div>`;
+      card.addEventListener('click', () => applyPreset(p));
+      grid.appendChild(card);
+    });
+  }
+
+  function applyPreset(p) {
+    state.selectedPersonaId = p.persona; state.selectedMethodId = p.method;
+    state.intentionType = p.intention; state.length = p.length;
+    state.soundscape = p.soundscape; state.droneEnabled = p.soundscape !== 'none';
+    document.getElementById('intentionType').value = p.intention;
+    document.getElementById('lengthSelect').value = p.length;
+    const ssSelect = document.getElementById('soundscapeSelect');
+    if (ssSelect) ssSelect.value = p.soundscape;
+    renderPersonaGrid(); renderPersonaDetail(); renderMethodGrid(); renderMethodDetail();
+    updateIntentionHint(); updateStepUI();
+    // Mark steps 1-3 as complete and jump to step 4
+    state.stepsCompleted = { 1: true, 2: true, 3: true, 4: false, 5: false };
+    goToStep(4);
+    notify.success(`Preset "${p.name}" loaded — configure and generate.`);
+  }
+
+  // ====================================================================
+  // ACTIVITY HEATMAP (from Studio metrics-history.js)
+  // ====================================================================
+  async function renderHeatmap() {
+    const wrap = document.getElementById('heatmapWrap');
+    if (!wrap) return;
+    const history = (await idbGet('stillness_history_v1')) || [];
+    if (history.length === 0) { wrap.innerHTML = ''; return; }
+
+    // Build day→count map for the last 16 weeks (112 days)
+    const dayCounts = {};
+    history.forEach(s => {
+      const d = new Date(s.date); d.setHours(0,0,0,0);
+      const key = d.toISOString().slice(0,10);
+      dayCounts[key] = (dayCounts[key] || 0) + 1;
+    });
+
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayMs = 86400000;
+    // Start from 15 weeks ago, aligned to Monday
+    const startDay = new Date(today.getTime() - 15 * 7 * dayMs);
+    startDay.setDate(startDay.getDate() - ((startDay.getDay() + 6) % 7)); // Monday
+
+    let html = '<div class="heatmap">';
+    let d = new Date(startDay);
+    while (d <= today) {
+      html += '<div class="heatmap-col">';
+      for (let row = 0; row < 7 && d <= today; row++) {
+        const key = d.toISOString().slice(0,10);
+        const count = dayCounts[key] || 0;
+        const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4;
+        const title = `${key}: ${count} session${count !== 1 ? 's' : ''}`;
+        html += `<div class="heatmap-cell" data-count="${level}" title="${title}"></div>`;
+        d.setDate(d.getDate() + 1);
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+    wrap.innerHTML = html;
+  }
+
+  // ====================================================================
+  // ONBOARDING TOUR (from Studio profile-tour.js)
+  // ====================================================================
+  const TOUR_KEY = 'stillness_tour_v1';
+  const TOUR_STEPS = [
+    { icon: '🌀', title: 'Welcome to the Hypnosis Generator', body: 'This tool creates personalised AI-generated hypnosis sessions with narration, visuals, and procedural soundscapes — all running locally in your browser. This 30-second tour shows you how.' },
+    { icon: '👤', title: 'Step 1: Choose a Guide', body: 'Your guide is the voice personality that narrates the session. 25 built-in personas across four temperaments — from The Therapist (gentle, permissive) to The Dominatrix (commanding authority). Or create your own.' },
+    { icon: '🔮', title: 'Step 2: Choose a Method', body: '37 induction techniques — how trance will be induced. From gentle progressive relaxation to dramatic shock inductions. Each has a recommended visual and soundscape.' },
+    { icon: '🎯', title: 'Step 3: Set an Intention', body: 'What you want from the session. The AI crafts a technically-precise hypnotic suggestion from your rough description. 20 intention types from triggers to time distortion.' },
+    { icon: '⚙', title: 'Step 4: Configure', body: 'Fine-tune everything: 10 procedural soundscapes, 16 visual effects, voice pitch/speed/volume, and 7 HUD element toggles. Or use the quick-start presets on Step 1 to skip straight here.' },
+    { icon: '▶', title: 'Step 5: Generate & Begin', body: 'One AI call generates a complete five-phase script. Edit it, then begin a fully narrated session. Use ⚙ Settings during the session to adjust anything in real time.' },
+    { icon: '⚡', title: 'Quick-start presets', body: 'Don\'t want to configure? Use the preset cards on Step 1: Sleep, Quick Calm, Deep Focus, Demo Night, Pain Relief, or Micro Reset. One click sets everything.' },
+    { icon: '✨', title: 'You\'re ready', body: 'Pick a guide and method, or use a preset. Your first session takes about 2 minutes to set up. All your data stays on this device — nothing is sent anywhere.' },
+  ];
+
+  function shouldShowTour() { try { return !localStorage.getItem(TOUR_KEY); } catch { return false; } }
+  function markTourSeen() { try { localStorage.setItem(TOUR_KEY, '1'); } catch {} }
+
+  function startTour() {
+    let step = 0;
+    const overlay = document.createElement('div'); overlay.className = 'tour-overlay';
+    const card = document.createElement('div'); card.className = 'tour-card';
+    document.body.appendChild(overlay); document.body.appendChild(card);
+
+    function render() {
+      const s = TOUR_STEPS[step];
+      const isLast = step === TOUR_STEPS.length - 1;
+      card.innerHTML = `
+        <div style="font-size:1.4rem;margin-bottom:8px;">${s.icon}</div>
+        <h3>${s.title}</h3>
+        <p>${s.body}</p>
+        <div class="tour-dots">${TOUR_STEPS.map((_,i) => `<div class="tour-dot${i===step?' active':''}"></div>`).join('')}</div>
+        <div class="tour-actions">
+          <button class="tour-skip" id="tourSkip">${isLast ? '' : 'skip tour'}</button>
+          <div style="display:flex;gap:6px;">
+            ${step > 0 ? '<button class="tour-next" id="tourBack" style="background:transparent;border:1px solid #2a3340;color:var(--text-dim);">← back</button>' : ''}
+            <button class="tour-next" id="tourNext">${isLast ? 'done ✓' : 'next →'}</button>
+          </div>
+        </div>`;
+      document.getElementById('tourSkip')?.addEventListener('click', dismiss);
+      document.getElementById('tourBack')?.addEventListener('click', () => { step--; render(); });
+      document.getElementById('tourNext')?.addEventListener('click', () => { if (isLast) dismiss(); else { step++; render(); } });
+    }
+
+    function dismiss() {
+      markTourSeen(); overlay.remove(); card.remove();
+      document.removeEventListener('keydown', kh);
+    }
+    const kh = e => { if (e.key === 'Escape') dismiss(); if (e.key === 'ArrowRight' && step < TOUR_STEPS.length-1) { step++; render(); } if (e.key === 'ArrowLeft' && step > 0) { step--; render(); } };
+    document.addEventListener('keydown', kh);
+    render();
+  }
+
+  // ====================================================================
+  // VIBRATION HAPTICS (breathing feedback for supported devices)
+  // ====================================================================
+  function vibrateBreath() {
+    // 4-7-8 breathing haptic: inhale pulse, hold, exhale pulse, hold
+    if (caps.vibration) navigator.vibrate([400, 3600, 400, 7600]);
+  }
+  function vibrateSessionMarker() {
+    if (caps.vibration) navigator.vibrate([100, 50, 100]);
+  }
 
   // Persona modal
   document.getElementById('personaCancelBtn').addEventListener('click', closePersonaEditor);
@@ -3877,6 +4311,7 @@ Begin:`;
 
   // Init — async to wait for IDB storage migration
   (async function init() {
+    detectCaps();
     await _initStorage();
     refreshPersonas();
     renderPersonaGrid();
@@ -3884,7 +4319,9 @@ Begin:`;
     renderMethodGrid();
     renderMethodDetail();
     renderLibrary();
+    renderPresets();
     renderSessionHistory();
+    renderHeatmap();
     updateIntentionHint();
     // Set soundscape default based on first method
     const defaultMethod = getMethod();
@@ -3902,5 +4339,8 @@ Begin:`;
       if (window.innerWidth < 500) setTimeout(() => root.aiTextPlugin({ preload: true }), 5000);
       else root.aiTextPlugin({ preload: true });
     }
+
+    // Onboarding tour for first-time visitors
+    if (shouldShowTour()) setTimeout(startTour, 800);
   })();
 </script>
