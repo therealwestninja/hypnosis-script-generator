@@ -698,6 +698,58 @@ body.in-session .footer {
     padding: 4px 10px; font-size: 0.7rem; cursor: pointer;
   }
   .transcript-toggle:hover { color: var(--text-dim); }
+  .transcript-toggle.recording { color: #e05050; border-color: #e05050; animation: rec-pulse 1.5s ease-in-out infinite; }
+  @keyframes rec-pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+
+  /* ============ LIVE SETTINGS PANEL ============ */
+  .live-panel {
+    position: fixed; top: 0; right: -320px; width: 300px; max-width: 85vw;
+    height: 100vh; z-index: 30;
+    background: rgba(8, 10, 14, 0.94);
+    border-left: 1px solid #1a2230;
+    backdrop-filter: blur(12px);
+    overflow-y: auto; overflow-x: hidden;
+    padding: 16px 14px 40px;
+    transition: right 0.3s ease;
+  }
+  .live-panel.open { right: 0; }
+  .live-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #1a2230;
+  }
+  .live-panel-header h3 {
+    font-size: 0.78rem; font-weight: 500; color: var(--text);
+    letter-spacing: 0.08em; text-transform: uppercase; margin: 0;
+  }
+  .live-panel-close {
+    background: transparent; border: 1px solid #2a3340; color: var(--text-dim);
+    border-radius: 6px; padding: 4px 10px; font-size: 0.75rem; cursor: pointer;
+  }
+  .live-panel-close:hover { color: var(--text); }
+  .live-section {
+    margin-bottom: 18px;
+  }
+  .live-section-label {
+    font-size: 0.62rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 8px; font-weight: 500;
+  }
+  .live-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 6px; font-size: 0.78rem; color: var(--text-dim);
+  }
+  .live-row label { flex: 1; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .live-row input[type="range"] { flex: 1; max-width: 120px; }
+  .live-row select { flex: 1; font-size: 0.78rem; padding: 4px 8px; }
+  .live-row input[type="checkbox"] { width: 14px; height: 14px; }
+  .live-val {
+    font-size: 0.68rem; color: var(--text-faint); min-width: 32px; text-align: right;
+    font-family: ui-monospace, monospace;
+  }
+  .live-panel-overlay {
+    position: fixed; inset: 0; z-index: 29;
+    background: transparent; display: none;
+  }
+  .live-panel-overlay.open { display: block; }
 
   /* ============ SHARE MODAL ============ */
   .share-url-box {
@@ -814,9 +866,30 @@ body.in-session .footer {
           </div>
         </div>
       </details>
+
+      <details style="margin-top: 10px;">
+        <summary>hypnotizability self-assessment</summary>
+        <div style="padding: 8px 0;">
+          <div class="sublabel" style="margin-bottom: 12px;">A quick self-assessment inspired by the Spiegel Eye-Roll Sign and Stanford scales. Not a clinical test — just helps suggest which methods might work best for you.</div>
+          <div id="hipQuiz">
+            <div class="field" style="margin-bottom:12px;">
+              <div class="field-label-sm" style="margin-bottom:6px;">1. Roll your eyes upward as far as you can while slowly closing your eyelids. How much white showed?</div>
+              <select id="hipQ1" style="font-size:0.85rem;"><option value="0">None — couldn't see any white</option><option value="1">A sliver of white</option><option value="2" selected>A noticeable band of white</option><option value="3">A lot of white — most of the iris hidden</option></select>
+            </div>
+            <div class="field" style="margin-bottom:12px;">
+              <div class="field-label-sm" style="margin-bottom:6px;">2. Have you ever been so absorbed in a book, film, or daydream that you lost track of time or didn't hear someone calling you?</div>
+              <select id="hipQ2" style="font-size:0.85rem;"><option value="0">Rarely or never</option><option value="1" selected>Sometimes</option><option value="2">Often</option><option value="3">Very frequently — I get deeply absorbed</option></select>
+            </div>
+            <div class="field" style="margin-bottom:12px;">
+              <div class="field-label-sm" style="margin-bottom:6px;">3. When someone describes a vivid scene — a lemon being cut, a sunny beach — how strongly do you feel it physically?</div>
+              <select id="hipQ3" style="font-size:0.85rem;"><option value="0">I understand it intellectually but don't feel much</option><option value="1" selected>Mild sensation — a faint impression</option><option value="2">Moderate — I can taste/feel/see something</option><option value="3">Strong — vivid physical response</option></select>
+            </div>
+            <button class="btn secondary full" id="hipAssessBtn" style="font-size:0.85rem;">assess my suggestibility</button>
+            <div id="hipResult" style="margin-top:10px;"></div>
+          </div>
+        </div>
+      </details>
     </div>
- 
-    <!-- STEP 2: METHOD -->
     <div class="step-content" data-step="2">
       <div class="step-header">
         <h2 class="step-title">Choose Your Method</h2>
@@ -908,13 +981,14 @@ body.in-session .footer {
     <div class="step-content" data-step="4">
       <div class="step-header">
         <h2 class="step-title">Configure the Session</h2>
-        <p class="step-subtitle">Adjust length, voice, and audio. Defaults are fine for most people — change only if you know why.</p>
+        <p class="step-subtitle">Fully customize your experience. Defaults are sensible — change only what you want.</p>
       </div>
 
       <div class="detail-panel" id="configSummary" style="margin-bottom: 20px;"></div>
 
+      <!-- ── SESSION ── -->
       <div class="field-group">
-        <label class="field-label">session length</label>
+        <label class="field-label">session</label>
         <select id="lengthSelect">
           <option value="micro">Micro (~2 min) — quick relief booster</option>
           <option value="quick">Quick (~5 min) — focused reset</option>
@@ -925,8 +999,19 @@ body.in-session .footer {
         <div class="sublabel" id="lengthHint"></div>
       </div>
 
+      <!-- ── VOICE ── -->
       <div class="field-group">
-        <label class="field-label">soundscape</label>
+        <label class="field-label">voice</label>
+        <select id="voiceSelect"></select>
+        <div class="voice-preview-row">
+          <button class="voice-preview-btn" id="voicePreviewBtn">▶ preview voice</button>
+          <span class="sublabel" style="margin:0;">Hear a sample with current settings.</span>
+        </div>
+      </div>
+
+      <!-- ── AUDIO ── -->
+      <div class="field-group">
+        <label class="field-label">audio & soundscape</label>
         <select id="soundscapeSelect">
           <option value="none">None — voice only</option>
           <option value="drone" selected>Engine drone — low hum, road-noise feel</option>
@@ -941,21 +1026,60 @@ body.in-session .footer {
           <option value="white">White noise — full-spectrum static</option>
         </select>
         <div class="sublabel" id="soundscapeHint">Procedurally generated — never loops. Use headphones for binaural.</div>
+        <div class="toggle-row" style="margin-top:8px;"><label for="droneVolume">Soundscape volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"><span class="hint" id="droneVolVal" style="min-width:28px;text-align:right;">35</span></div>
+        <div class="toggle-row"><label for="speechRate">Voice speed</label><input type="range" id="speechRate" min="50" max="100" value="65"><span class="hint" id="speechRateVal" style="min-width:28px;text-align:right;">0.65×</span></div>
+        <div class="toggle-row"><label for="voicePitch">Voice pitch</label><input type="range" id="voicePitch" min="50" max="120" value="85"><span class="hint" id="voicePitchVal" style="min-width:28px;text-align:right;">0.85</span></div>
+        <div class="toggle-row"><label for="voiceVolume">Narration volume</label><input type="range" id="voiceVolume" min="0" max="100" value="100"><span class="hint" id="voiceVolVal" style="min-width:28px;text-align:right;">100</span></div>
+        <div class="sublabel" id="speechRateHint">Slower is more hypnotic.</div>
       </div>
 
+      <!-- ── VISUAL ── -->
       <div class="field-group">
-        <label class="field-label">audio levels</label>
-        <div class="toggle-row"><label for="droneVolume">Soundscape volume</label><input type="range" id="droneVolume" min="0" max="100" value="35"></div>
-        <div class="toggle-row"><label for="speechRate">Voice speed<span class="hint" id="speechRateHint">Slower is more hypnotic.</span></label><input type="range" id="speechRate" min="50" max="100" value="65"></div>
+        <label class="field-label">visual effect</label>
+        <select id="vizSelect">
+          <option value="auto">Auto (matched to method)</option>
+          <optgroup label="Induction">
+            <option value="spiral">Spiral — rotating Archimedes spiral</option>
+            <option value="breathing">Breathing circle — 4-7-8 breath pacer</option>
+            <option value="candle">Candle — soft focal glow with flicker</option>
+            <option value="moire">Moiré — interference rings (potent)</option>
+            <option value="highway">Highway — scrolling road lines</option>
+          </optgroup>
+          <optgroup label="Deepening">
+            <option value="tunnel">Tunnel — concentric rings rushing inward</option>
+            <option value="starfield">Starfield — warp-speed star tunnel</option>
+            <option value="colorwash">Colour wash — slow HSL drift</option>
+            <option value="canvas-pulse">Pulse rings — expanding ripples</option>
+          </optgroup>
+          <optgroup label="Trance">
+            <option value="vortex">Vortex — multi-arm rotating star</option>
+            <option value="mandala">Mandala — rotating symmetric petals</option>
+            <option value="lissajous">Lissajous — parametric figure-8</option>
+            <option value="pendulum-viz">Pendulum — harmonograph traces</option>
+          </optgroup>
+          <optgroup label="Intense">
+            <option value="flowfield">Flow field — particle wind</option>
+            <option value="plasma">Plasma — rainbow sine waves</option>
+            <option value="kaleidoscope-flow">Kaleidoscope (flow field)</option>
+            <option value="kaleidoscope-plasma">Kaleidoscope (plasma)</option>
+          </optgroup>
+          <optgroup label="Minimal">
+            <option value="pulse">CSS pulse rings (lightest)</option>
+            <option value="none">None — black screen only</option>
+          </optgroup>
+        </select>
       </div>
 
+      <!-- ── HUD ELEMENTS ── -->
       <div class="field-group">
-        <label class="field-label">voice</label>
-        <select id="voiceSelect"></select>
-        <div class="voice-preview-row">
-          <button class="voice-preview-btn" id="voicePreviewBtn">▶ preview voice</button>
-          <span class="sublabel" style="margin:0;">Hear a sample sentence with current settings.</span>
-        </div>
+        <label class="field-label">session display elements</label>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgFixationDot" checked> Fixation dot<span class="hint">Central focus point</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgTextDisplay" checked> Narration text<span class="hint">Shows what the voice is saying</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgPhaseDots" checked> Phase dots<span class="hint">5-dot progress at top</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgPhaseLabel" checked> Phase label<span class="hint">"settling", "going inward", etc.</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgProgressBar" checked> Progress bar<span class="hint">Thin bar at bottom of stage</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgSessionTime" checked> Elapsed time<span class="hint">Minutes:seconds counter</span></label></div>
+        <div class="toggle-row"><label><input type="checkbox" id="cfgLabels" checked> Persona/method labels<span class="hint">Corner labels on stage</span></label></div>
       </div>
 
       <div class="disclaimer" id="configWarning" style="display:none;"></div>
@@ -1042,8 +1166,92 @@ body.in-session .footer {
       <button class="btn secondary" id="pauseBtn">pause</button>
       <button class="btn secondary" id="endBtn">end & re-alert</button>
       <button class="transcript-toggle" id="transcriptToggle">📜 script</button>
+      <button class="transcript-toggle" id="recordBtn">⏺ record ambience</button>
+      <button class="transcript-toggle" id="fullscreenBtn">⛶ fullscreen</button>
+      <button class="transcript-toggle" id="liveSettingsBtn">⚙ settings</button>
     </div>
     <div class="kb-hint"><kbd>Space</kbd> pause/resume · <kbd>Esc</kbd> end & re-alert</div>
+  </div>
+
+  <!-- LIVE SETTINGS PANEL (slide-out during session) -->
+  <div class="live-panel-overlay" id="livePanelOverlay"></div>
+  <div class="live-panel" id="livePanel">
+    <div class="live-panel-header">
+      <h3>session settings</h3>
+      <button class="live-panel-close" id="livePanelClose">✕ close</button>
+    </div>
+
+    <div class="live-section">
+      <div class="live-section-label">visual effect</div>
+      <div class="live-row">
+        <select id="liveVizSelect">
+          <optgroup label="Induction">
+            <option value="spiral">Spiral</option>
+            <option value="breathing">Breathing circle</option>
+            <option value="candle">Candle</option>
+            <option value="moire">Moiré</option>
+            <option value="highway">Highway</option>
+          </optgroup>
+          <optgroup label="Deepening">
+            <option value="tunnel">Tunnel</option>
+            <option value="starfield">Starfield</option>
+            <option value="colorwash">Colour wash</option>
+            <option value="canvas-pulse">Pulse rings</option>
+          </optgroup>
+          <optgroup label="Trance">
+            <option value="vortex">Vortex</option>
+            <option value="mandala">Mandala</option>
+            <option value="lissajous">Lissajous</option>
+            <option value="pendulum-viz">Pendulum</option>
+          </optgroup>
+          <optgroup label="Intense">
+            <option value="flowfield">Flow field</option>
+            <option value="plasma">Plasma</option>
+            <option value="kaleidoscope-flow">Kaleidoscope (flow)</option>
+            <option value="kaleidoscope-plasma">Kaleidoscope (plasma)</option>
+          </optgroup>
+          <optgroup label="Minimal">
+            <option value="pulse">CSS pulse</option>
+            <option value="none">None (black)</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <div class="live-section">
+      <div class="live-section-label">audio</div>
+      <div class="live-row">
+        <label>soundscape</label>
+        <select id="liveSoundscapeSelect" style="max-width:130px;">
+          <option value="none">None</option>
+          <option value="drone">Drone</option>
+          <option value="rain">Rain</option>
+          <option value="ocean">Ocean</option>
+          <option value="fire">Fire</option>
+          <option value="bowls">Bowls</option>
+          <option value="heartbeat">Heartbeat</option>
+          <option value="binaural">Binaural</option>
+          <option value="pink">Pink noise</option>
+          <option value="brown">Brown noise</option>
+          <option value="white">White noise</option>
+        </select>
+      </div>
+      <div class="live-row"><label>soundscape vol</label><input type="range" id="liveSoundVol" min="0" max="100" value="35"><span class="live-val" id="liveSoundVolVal">35</span></div>
+      <div class="live-row"><label>voice speed</label><input type="range" id="liveVoiceSpeed" min="50" max="100" value="65"><span class="live-val" id="liveVoiceSpeedVal">0.65×</span></div>
+      <div class="live-row"><label>voice pitch</label><input type="range" id="liveVoicePitch" min="50" max="120" value="85"><span class="live-val" id="liveVoicePitchVal">0.85</span></div>
+      <div class="live-row"><label>voice volume</label><input type="range" id="liveVoiceVol" min="0" max="100" value="100"><span class="live-val" id="liveVoiceVolVal">100</span></div>
+    </div>
+
+    <div class="live-section">
+      <div class="live-section-label">display elements</div>
+      <div class="live-row"><label><input type="checkbox" id="liveFixDot" checked> Fixation dot</label></div>
+      <div class="live-row"><label><input type="checkbox" id="liveText" checked> Narration text</label></div>
+      <div class="live-row"><label><input type="checkbox" id="livePhaseDots" checked> Phase dots</label></div>
+      <div class="live-row"><label><input type="checkbox" id="livePhaseLabel" checked> Phase label</label></div>
+      <div class="live-row"><label><input type="checkbox" id="liveProgress" checked> Progress bar</label></div>
+      <div class="live-row"><label><input type="checkbox" id="liveTime" checked> Elapsed time</label></div>
+      <div class="live-row"><label><input type="checkbox" id="liveLabels" checked> Corner labels</label></div>
+    </div>
   </div>
  
   <!-- POST-SESSION -->
@@ -1259,17 +1467,17 @@ body.in-session .footer {
     // ── Rapid ──────────────────────────────────────────────────────
     { id: 'handshake-interrupt', name: 'Handshake Interrupt', tagline: 'Break the handshake pattern. Instant confusion drop.', tags: ['rapid', 'physical', 'ericksonian'], category: 'rapid', detail: 'Milton Erickson\'s signature. Reach out to shake your own left hand with your right — mid-handshake, freeze. The pattern-interrupt creates a moment of total blankness. Immediate suggestion fills the gap. Requires commitment and speed.', visual: 'vortex', drone: false, pacing: 'rapid' },
     { id: 'arm-drop', name: 'Arm Drop', tagline: 'Arm up, arm drops, you drop with it.', tags: ['rapid', 'physical', 'classic'], category: 'rapid', detail: 'Extend arm straight out, palm down. Stare at a spot on the back of the hand. When the arm is told to drop, close eyes simultaneously and drop INTO trance. The physical falling motion creates a kinesthetic anchor for mental "falling in." Simple, reliable, fast.', visual: 'pulse', drone: false, pacing: 'rapid' },
-    { id: 'magnetic-gaze', name: 'Magnetic Gaze', tagline: 'Lock eyes with a point. Cannot look away.', tags: ['rapid', 'visual', 'intense'], category: 'rapid', detail: 'Fix gaze on a single point (a thumbtack, a mark on the wall, the fixation dot). Do not blink. Suggestion that the point is pulling you in — magnetic attraction. Eye fatigue forces closure. The relief of closing IS the trance. One of the oldest induction methods known.', visual: 'candle, drone: true, pacing: 'monotony' },
+    { id: 'magnetic-gaze', name: 'Magnetic Gaze', tagline: 'Lock eyes with a point. Cannot look away.', tags: ['rapid', 'visual', 'intense'], category: 'rapid', detail: 'Fix gaze on a single point (a thumbtack, a mark on the wall, the fixation dot). Do not blink. Suggestion that the point is pulling you in — magnetic attraction. Eye fatigue forces closure. The relief of closing IS the trance. One of the oldest induction methods known.', visual: 'candle', drone: true, pacing: 'monotony' },
     { id: 'dave-elman', name: 'Dave Elman Induction', tagline: 'The clinical standard. Fast, reliable, deep.', tags: ['rapid', 'clinical', 'classic'], category: 'rapid', detail: 'The gold standard clinical induction (1-3 minutes). Eye closure test → relaxation doubling → arm drop → number block. Each step proves depth before going further. Used by medical/dental hypnotists worldwide because it is fast, reliable, and produces verifiable somnambulism.', visual: 'pulse', drone: false, pacing: 'elman', recommended: true },
     { id: 'shock-induction', name: 'Shock Induction', tagline: 'SLEEP! Instant authority drop.', tags: ['rapid', 'intense', 'stage'], category: 'rapid', detail: 'A sudden, authoritative command — "SLEEP!" — paired with a physical stimulus (a snap, a touch on the forehead, a hand pull). The startle response creates a momentary blank state. Immediate follow-up suggestions fill the void. Requires a highly suggestible state or prior conditioning. The most dramatic induction.', visual: 'starfield', drone: false, pacing: 'rapid' },
 
     // ── Advanced ───────────────────────────────────────────────────
-    { id: 'time-distortion', name: 'Time Distortion', tagline: '5 minutes feels like an hour. Or a second.', tags: ['advanced', 'perception', 'ericksonian'], category: 'advanced', detail: 'Milton Erickson\'s advanced technique. Once in trance, suggest that time is stretching — one minute of clock time contains ten minutes of subjective experience. Or compress: an hour of work happens in seconds. The unconscious mind adjusts time perception. Verifiable by comparing felt duration to actual elapsed time.', visual: 'tunnel', drone: true, pacing: 'permissive' },
-    { id: 'regression', name: 'Age Regression', tagline: 'Revisit a younger self. Access old resources.', tags: ['advanced', 'memory', 'therapeutic'], category: 'advanced', detail: 'Guide the subject back through time to a specific age or memory. Not for trauma work (that requires a live therapist) — but for accessing resource states: childhood wonder, a moment of pure confidence, a feeling you want to reconnect with. The younger self is experienced vividly, not just remembered.', visual: 'tunnel', drone: false, pacing: 'narrative' },
-    { id: 'hallucination-pos', name: 'Positive Hallucination', tagline: 'See something that isn\'t there. Eyes open.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'Deep somnambulistic phenomenon. Suggest the presence of something not physically there — a colored light, a warm glow around the hands, a butterfly. Requires deep trance. The hallucination is experienced as real, not imagined. Start with simple additions (a color, a warmth) before attempting complex objects.', visual: 'mandala', drone: true, pacing: 'permissive' },
+    { id: 'time-distortion', name: 'Time Distortion', tagline: '5 minutes feels like an hour. Or a second.', tags: ['advanced', 'perception', 'ericksonian'], category: 'advanced', detail: 'Milton Erickson\'s advanced technique. Once in trance, suggest that time is stretching — one minute of clock time contains ten minutes of subjective experience. Or compress: an hour of work happens in seconds. The unconscious mind adjusts time perception. Verifiable by comparing felt duration to actual elapsed time.', visual: 'kaleidoscope-plasma', drone: true, pacing: 'permissive' },
+    { id: 'regression', name: 'Age Regression', tagline: 'Revisit a younger self. Access old resources.', tags: ['advanced', 'memory', 'therapeutic'], category: 'advanced', detail: 'Guide the subject back through time to a specific age or memory. Not for trauma work (that requires a live therapist) — but for accessing resource states: childhood wonder, a moment of pure confidence, a feeling you want to reconnect with. The younger self is experienced vividly, not just remembered.', visual: 'starfield', drone: false, pacing: 'narrative' },
+    { id: 'hallucination-pos', name: 'Positive Hallucination', tagline: 'See something that isn\'t there. Eyes open.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'Deep somnambulistic phenomenon. Suggest the presence of something not physically there — a colored light, a warm glow around the hands, a butterfly. Requires deep trance. The hallucination is experienced as real, not imagined. Start with simple additions (a color, a warmth) before attempting complex objects.', visual: 'kaleidoscope-flow', drone: true, pacing: 'permissive' },
     { id: 'hallucination-neg', name: 'Negative Hallucination', tagline: 'Something disappears. It was there — now it\'s gone.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'The opposite of positive hallucination: something present becomes invisible. Start with a small object — a pen, a cup. Suggest it is fading, becoming transparent, vanishing. In deep somnambulism, the subject genuinely cannot see the object. One of the deepest phenomena measurable.', visual: 'vortex', drone: true, pacing: 'permissive' },
     { id: 'somnambulism', name: 'Eyes-Open Somnambulism', tagline: 'Deepest trance. Eyes open. Fully responsive.', tags: ['advanced', 'deep', 'rare'], category: 'advanced', detail: 'The deepest trance state — eyes open, moving normally, speaking normally, but profoundly in trance. Looks like being awake but the unconscious is fully dominant. Subject can hallucinate, experience amnesia, and accept complex suggestions. Requires extensive prior trance experience and a skilled induction path.', visual: 'moire', drone: true, pacing: 'permissive' },
-    { id: 'double-induction', name: 'Double Induction', tagline: 'Two voice tracks. Overwhelm the conscious mind.', tags: ['advanced', 'confusion', 'intense'], category: 'advanced', detail: 'Two simultaneous voice streams — one analytical, one emotional. The conscious mind cannot track both and gives up, producing immediate depth. In self-hypnosis: alternate between two narration styles within the same script, rapidly switching register. Disorientation is the mechanism.', visual: 'vortex', drone: true, pacing: 'confusion' },
+    { id: 'double-induction', name: 'Double Induction', tagline: 'Two voice tracks. Overwhelm the conscious mind.', tags: ['advanced', 'confusion', 'intense'], category: 'advanced', detail: 'Two simultaneous voice streams — one analytical, one emotional. The conscious mind cannot track both and gives up, producing immediate depth. In self-hypnosis: alternate between two narration styles within the same script, rapidly switching register. Disorientation is the mechanism.', visual: 'plasma', drone: true, pacing: 'confusion' },
     { id: 'anesthesia-full', name: 'Full-Body Anesthesia', tagline: 'Total numbness. Clinical depth.', tags: ['advanced', 'pain', 'clinical'], category: 'advanced', detail: 'Extension of glove anesthesia to the entire body. Progressive numbness spreading from extremities inward. Historically used for surgery before chemical anesthesia existed. Requires deep somnambulism. The body becomes a distant object — present but unfelt. Profound dissociation from physical sensation.', visual: 'colorwash', drone: true, pacing: 'body-scan' },
   ];
  
@@ -1374,7 +1582,11 @@ body.in-session .footer {
     length: 'medium',
     voice: null,
     speechRate: 0.65,
+    voicePitch: 0.85,
+    voiceVolume: 1.0,
     droneVolume: 0.35,
+    vizOverride: 'auto',
+    hud: { fixationDot: true, textDisplay: true, phaseDots: true, phaseLabel: true, progressBar: true, sessionTime: true, labels: true },
     paused: false,
     abortFlag: false,
     editingPersonaId: null,
@@ -2133,6 +2345,115 @@ body.in-session .footer {
     ctx.fillStyle = 'rgba(255,255,240,0.9)'; ctx.fill();
   }
 
+  // Flow-field particles — simplex noise driven, additive glow
+  // Uses a simplified 2D noise (value noise with smoothstep) since we can't import simplex
+  function renderFlowField(ctx, W, H, t, color) {
+    const rgb = hexToRgb(color);
+    const N = W < 500 ? 250 : 600; // Mobile vs desktop
+    if (!renderFlowField._p) {
+      renderFlowField._p = [];
+      for (let i = 0; i < N; i++) renderFlowField._p.push({ x: Math.random()*W, y: Math.random()*H, px: 0, py: 0 });
+    }
+    const ps = renderFlowField._p;
+    // Resize pool if canvas changed
+    if (ps.length < N) while (ps.length < N) ps.push({ x: Math.random()*W, y: Math.random()*H, px: 0, py: 0 });
+
+    ctx.fillStyle = 'rgba(0,0,0,0.04)'; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'lighter';
+
+    const scale = 0.003, speed = 0.5;
+    for (const p of ps) {
+      p.px = p.x; p.py = p.y;
+      // Simple hash-based noise field
+      const nx = p.x * scale, ny = p.y * scale, nt = t * 0.08;
+      const angle = (Math.sin(nx * 3.1 + nt) + Math.cos(ny * 2.7 - nt * 0.7) + Math.sin((nx + ny) * 1.4 + nt * 0.3)) * Math.PI;
+      p.x += Math.cos(angle) * speed;
+      p.y += Math.sin(angle) * speed;
+      // Wrap around
+      if (p.x < 0) p.x += W; if (p.x > W) p.x -= W;
+      if (p.y < 0) p.y += H; if (p.y > H) p.y -= H;
+      // Draw streak
+      const dx = p.x - p.px, dy = p.y - p.py;
+      if (Math.abs(dx) < 20 && Math.abs(dy) < 20) {
+        ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = `rgba(${rgb},0.3)`; ctx.lineWidth = 0.8; ctx.stroke();
+      }
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    // Vignette
+    const vig = ctx.createRadialGradient(W/2, H/2, Math.min(W,H)*0.2, W/2, H/2, Math.min(W,H)*0.6);
+    vig.addColorStop(0, 'transparent'); vig.addColorStop(1, 'rgba(0,0,0,0.4)');
+    ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+  }
+
+  // Classic plasma — sum of sines mapped through HSV palette
+  function renderPlasma(ctx, W, H, t, color) {
+    // Render at reduced resolution for performance
+    const rW = 192, rH = Math.round(rW * H / W);
+    if (!renderPlasma._img || renderPlasma._img.width !== rW) {
+      renderPlasma._off = new OffscreenCanvas ? new OffscreenCanvas(rW, rH) : document.createElement('canvas');
+      renderPlasma._off.width = rW; renderPlasma._off.height = rH;
+      renderPlasma._img = renderPlasma._off.getContext('2d').createImageData(rW, rH);
+      // Precompute sine LUT
+      renderPlasma._sin = new Float32Array(1024);
+      for (let i = 0; i < 1024; i++) renderPlasma._sin[i] = Math.sin(i * Math.PI * 2 / 1024);
+    }
+    const data = renderPlasma._img.data, sinLut = renderPlasma._sin;
+    const S = v => sinLut[((v % 1024) + 1024) % 1024 | 0];
+
+    for (let y = 0; y < rH; y++) {
+      for (let x = 0; x < rW; x++) {
+        const v = S(x * 3 + t * 40) + S(y * 4 - t * 30) + S((x + y) * 2 + t * 20) + S(Math.sqrt(x*x + y*y) * 2 - t * 50);
+        const hue = ((v + 4) / 8 * 360 + t * 15) % 360;
+        // HSV to RGB (S=0.7, V=0.6)
+        const c = 0.42, x2 = c * (1 - Math.abs((hue / 60) % 2 - 1));
+        let r1=0,g1=0,b1=0;
+        const h = Math.floor(hue / 60) % 6;
+        if (h===0){r1=c;g1=x2;}else if(h===1){r1=x2;g1=c;}else if(h===2){g1=c;b1=x2;}
+        else if(h===3){g1=x2;b1=c;}else if(h===4){r1=x2;b1=c;}else{r1=c;b1=x2;}
+        const m = 0.18;
+        const idx = (y * rW + x) * 4;
+        data[idx] = (r1+m)*255; data[idx+1] = (g1+m)*255; data[idx+2] = (b1+m)*255; data[idx+3] = 255;
+      }
+    }
+    const offCtx = renderPlasma._off.getContext('2d');
+    offCtx.putImageData(renderPlasma._img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(renderPlasma._off, 0, 0, W, H);
+  }
+
+  // Kaleidoscope — wraps any sub-renderer with N-fold mirror symmetry
+  function makeKaleidoscope(subRenderer, folds = 6) {
+    return function(ctx, W, H, t, color) {
+      const cx = W/2, cy = H/2;
+      // Render sub-effect to an offscreen canvas
+      if (!makeKaleidoscope._off || makeKaleidoscope._off.width !== W) {
+        makeKaleidoscope._off = document.createElement('canvas');
+        makeKaleidoscope._off.width = W; makeKaleidoscope._off.height = H;
+      }
+      const offCtx = makeKaleidoscope._off.getContext('2d');
+      subRenderer(offCtx, W, H, t, color);
+      // Draw N wedges with alternating mirrors
+      ctx.clearRect(0, 0, W, H);
+      const wedgeAngle = Math.PI * 2 / folds;
+      for (let i = 0; i < folds; i++) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(wedgeAngle * i);
+        if (i % 2 === 1) ctx.scale(-1, 1); // Mirror alternate wedges
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.max(W, H), 0);
+        ctx.arc(0, 0, Math.max(W, H), 0, wedgeAngle);
+        ctx.closePath();
+        ctx.clip();
+        ctx.translate(-cx, -cy);
+        ctx.drawImage(makeKaleidoscope._off, 0, 0);
+        ctx.restore();
+      }
+    };
+  }
+
   const VIZ_RENDERERS = {
     tunnel: renderTunnel,
     'pendulum-viz': renderPendulumViz,
@@ -2145,6 +2466,10 @@ body.in-session .footer {
     moire: renderMoire,
     starfield: renderStarfield,
     candle: renderCandle,
+    flowfield: renderFlowField,
+    plasma: renderPlasma,
+    'kaleidoscope-flow': makeKaleidoscope(renderFlowField, 6),
+    'kaleidoscope-plasma': makeKaleidoscope(renderPlasma, 8),
   };
 
   // Phase-based speed multipliers for visuals
@@ -2774,6 +3099,21 @@ Begin:`;
     state._currentPhase = 'settling';
     const method = getMethod();
 
+    // Double induction: pick a contrasting second voice
+    state._doubleInduction = method.id === 'double-induction';
+    state._secondVoice = null;
+    if (state._doubleInduction) {
+      const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en') && v.name !== state.voice?.name);
+      // Try to find an opposite-gender voice for maximum contrast
+      const primaryName = (state.voice?.name || '').toLowerCase();
+      const isMale = /male|daniel|james|david|mark|george/i.test(primaryName) && !/female/i.test(primaryName);
+      const opposite = voices.find(v => isMale ? /female|samantha|karen|moira|zira/i.test(v.name) : /male|daniel|james|david|mark/i.test(v.name) && !/female/i.test(v.name));
+      state._secondVoice = opposite || voices[0] || null;
+      if (state._secondVoice) {
+        notify.info(`Double induction: ${state.voice?.name || 'primary'} + ${state._secondVoice.name}`);
+      }
+    }
+
     document.getElementById('setup-wizard').style.display = 'none';
     document.getElementById('session-screen').style.display = 'block';
     document.body.classList.add('in-session');
@@ -2784,7 +3124,32 @@ Begin:`;
     document.getElementById('sessionProgressFill').style.width = '0%';
     document.querySelectorAll('.phase-dot').forEach(d => { d.classList.remove('active','done'); });
 
-    setupVisual(method.visual);
+    // Apply HUD visibility toggles from Configure tab
+    const h = state.hud;
+    const $s = (id, vis) => { const el = document.getElementById(id); if (el) el.style.display = vis ? '' : 'none'; };
+    $s('fixationDot', h.fixationDot);
+    $s('textDisplay', h.textDisplay);
+    $s('phaseDots', h.phaseDots);
+    $s('phaseIndicator', h.phaseLabel);
+    document.querySelector('.session-progress-wrap')?.style.setProperty('display', h.progressBar ? '' : 'none');
+    $s('sessionTime', h.sessionTime);
+    $s('personaIndicator', h.labels);
+    $s('methodIndicator', h.labels);
+    $s('audioIndicator', h.labels);
+
+    // Apply visual override (user selection or method default)
+    const vizChoice = state.vizOverride === 'auto' ? method.visual : state.vizOverride;
+    if (vizChoice === 'none') {
+      // Black screen only — skip visual setup
+      const stage = document.getElementById('stage');
+      Array.from(stage.children).forEach(c => {
+        if (!c.classList.contains('fixation-dot') && !c.classList.contains('audio-indicator')
+          && !c.classList.contains('persona-indicator') && !c.classList.contains('method-indicator')
+          && !c.classList.contains('session-progress-wrap') && !c.classList.contains('transcript-panel')) c.remove();
+      });
+    } else {
+      setupVisual(vizChoice);
+    }
     populateTranscript();
     document.getElementById('transcriptPanel')?.classList.remove('visible');
     const tBtn = document.getElementById('transcriptToggle');
@@ -2930,10 +3295,8 @@ Begin:`;
   function speak(text) {
     return new Promise(resolve => {
       if (!('speechSynthesis' in window)) { setTimeout(resolve, text.length * 80); return; }
-      // Chrome bug workaround: cancel + re-init if synthesis has been going too long
       if (speechSynthesis.speaking && !speechSynthesis.paused) {
         speechSynthesis.cancel();
-        // Brief gap to let Chrome reset its internal state
         setTimeout(() => _doSpeak(text, resolve), 50);
       } else {
         _doSpeak(text, resolve);
@@ -2943,24 +3306,88 @@ Begin:`;
   function _doSpeak(text, resolve) {
     const u = new SpeechSynthesisUtterance(text);
     u.voice = state.voice || getSelectedVoice();
-    u.rate = state.speechRate; u.pitch = 0.85; u.volume = 1.0;
+    u.rate = state.speechRate; u.pitch = state.voicePitch || 0.85; u.volume = state.voiceVolume ?? 1.0;
     let settled = false;
     const done = () => { if (!settled) { settled = true; resolve(); } };
     u.onend = done;
     u.onerror = done;
+
+    // Word-level highlighting via onboundary (Chrome/Safari desktop)
+    const display = document.getElementById('textDisplay');
+    u.onboundary = (e) => {
+      if (e.name === 'word' && display) {
+        const before = text.slice(0, e.charIndex);
+        const word = text.slice(e.charIndex, e.charIndex + e.charLength);
+        const after = text.slice(e.charIndex + e.charLength);
+        display.innerHTML = `<span style="opacity:0.35">${escapeHtml(before)}</span><span style="opacity:1;color:var(--text)">${escapeHtml(word)}</span><span style="opacity:0.35">${escapeHtml(after)}</span>`;
+      }
+    };
+
     speechSynthesis.speak(u);
-    // Watchdog: if TTS hasn't fired onend within a generous timeout, force-resolve
+
+    // Double induction: fire a second utterance with a different voice simultaneously
+    if (state._doubleInduction && state._secondVoice) {
+      const u2 = new SpeechSynthesisUtterance(text);
+      u2.voice = state._secondVoice;
+      u2.rate = state.speechRate * 0.92; // Slightly offset tempo
+      u2.pitch = 0.75; u2.volume = 0.7;
+      u2.onend = () => {}; u2.onerror = () => {};
+      speechSynthesis.speak(u2);
+    }
+
     const maxWait = Math.max(8000, text.length * 200);
-    setTimeout(() => {
-      if (!settled && !speechSynthesis.speaking) done();
-    }, maxWait);
-    // Hard ceiling to prevent infinite hangs
+    setTimeout(() => { if (!settled && !speechSynthesis.speaking) done(); }, maxWait);
     setTimeout(done, Math.max(15000, text.length * 250));
   }
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+  // ====================================================================
+  // AUDIO RECORDER (ambience-only — TTS can't be captured via Web Audio)
+  // ====================================================================
+  let _recorder = null, _recordedChunks = [];
+
+  function startRecording() {
+    if (!drone.ctx || !drone.master) { notify.warn('Start a session with a soundscape first.'); return; }
+    try {
+      const dest = drone.ctx.createMediaStreamDestination();
+      drone.master.connect(dest);
+      _recorder = new MediaRecorder(dest.stream, { mimeType: 'audio/webm;codecs=opus' });
+      _recordedChunks = [];
+      _recorder.ondataavailable = e => { if (e.data.size > 0) _recordedChunks.push(e.data); };
+      _recorder.onstop = () => {
+        if (_recordedChunks.length === 0) return;
+        const blob = new Blob(_recordedChunks, { type: 'audio/webm' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `stillness-ambience-${Date.now()}.webm`;
+        a.click(); URL.revokeObjectURL(a.href);
+        notify.success('Ambience recording downloaded.');
+        _recordedChunks = [];
+      };
+      _recorder.start();
+      notify.info('Recording ambience...');
+      const btn = document.getElementById('recordBtn');
+      if (btn) { btn.textContent = '⏹ stop recording'; btn.classList.add('recording'); }
+    } catch(e) { notify.error('Recording not supported in this browser.'); }
+  }
+
+  function stopRecording() {
+    if (_recorder && _recorder.state === 'recording') {
+      _recorder.stop(); _recorder = null;
+      const btn = document.getElementById('recordBtn');
+      if (btn) { btn.textContent = '⏺ record ambience'; btn.classList.remove('recording'); }
+    }
+  }
+
+  function toggleRecording() {
+    if (_recorder && _recorder.state === 'recording') stopRecording();
+    else startRecording();
+  }
+
   async function finishSession(wasEmergency = false) {
     clearInterval(state._timeInterval);
+    closeLivePanel();
+    stopRecording(); // Stop any active recording before tearing down audio
     await drone.stop(); stopVisuals(); speechSynthesis.cancel();
     document.body.classList.remove('in-session');
     document.getElementById('session-screen').style.display = 'none';
@@ -2989,7 +3416,6 @@ Begin:`;
     await idbSet('stillness_history_v1', history);
 
     // Build post-session summary
-    const elapsed = state._sessionStartTime ? Math.round((Date.now() - state._sessionStartTime) / 1000) : 0;
     const mins = Math.floor(elapsed / 60), secs = elapsed % 60;
     const persona = getPersona(), method = getMethod();
     const summaryEl = document.getElementById('postSummary');
@@ -3131,20 +3557,49 @@ Begin:`;
   document.getElementById('editCraftedBtn').addEventListener('click', toggleEditCrafted);
   document.getElementById('saveEditBtn').addEventListener('click', saveEditCrafted);
  
-  // Step 4
+  // Step 4 — audio controls
   document.getElementById('lengthSelect').addEventListener('change', () => { state.length = document.getElementById('lengthSelect').value; hideScript(); });
   document.getElementById('soundscapeSelect')?.addEventListener('change', e => {
     state.soundscape = e.target.value;
     state.droneEnabled = e.target.value !== 'none';
-    // Show headphones warning for binaural
     const hint = document.getElementById('soundscapeHint');
     if (hint) {
       if (e.target.value === 'binaural') hint.textContent = '⚠ Binaural beats require stereo headphones. Efficacy is contested in peer-reviewed literature.';
       else hint.textContent = 'Procedurally generated — never loops. Use headphones for best experience.';
     }
   });
-  document.getElementById('droneVolume').addEventListener('input', e => { state.droneVolume = parseInt(e.target.value,10)/100; drone.setVolume(state.droneVolume); });
-  document.getElementById('speechRate').addEventListener('input', e => state.speechRate = parseInt(e.target.value,10)/100);
+  document.getElementById('droneVolume').addEventListener('input', e => {
+    state.droneVolume = parseInt(e.target.value,10)/100; drone.setVolume(state.droneVolume);
+    const v = document.getElementById('droneVolVal'); if (v) v.textContent = e.target.value;
+  });
+  document.getElementById('speechRate').addEventListener('input', e => {
+    state.speechRate = parseInt(e.target.value,10)/100;
+    const v = document.getElementById('speechRateVal'); if (v) v.textContent = (parseInt(e.target.value,10)/100).toFixed(2) + '×';
+  });
+  document.getElementById('voicePitch')?.addEventListener('input', e => {
+    state.voicePitch = parseInt(e.target.value,10)/100;
+    const v = document.getElementById('voicePitchVal'); if (v) v.textContent = (parseInt(e.target.value,10)/100).toFixed(2);
+  });
+  document.getElementById('voiceVolume')?.addEventListener('input', e => {
+    state.voiceVolume = parseInt(e.target.value,10)/100;
+    const v = document.getElementById('voiceVolVal'); if (v) v.textContent = e.target.value;
+  });
+
+  // Step 4 — visual controls
+  document.getElementById('vizSelect')?.addEventListener('change', e => {
+    state.vizOverride = e.target.value;
+  });
+
+  // Step 4 — HUD element toggles
+  ['cfgFixationDot','cfgTextDisplay','cfgPhaseDots','cfgPhaseLabel','cfgProgressBar','cfgSessionTime','cfgLabels'].forEach(id => {
+    document.getElementById(id)?.addEventListener('change', e => {
+      const key = id.replace('cfg','').replace(/^./, c => c.toLowerCase());
+      // Map checkbox IDs to state.hud keys
+      const keyMap = { fixationDot:'fixationDot', textDisplay:'textDisplay', phaseDots:'phaseDots', phaseLabel:'phaseLabel', progressBar:'progressBar', sessionTime:'sessionTime', labels:'labels' };
+      const stateKey = keyMap[key];
+      if (stateKey) state.hud[stateKey] = e.target.checked;
+    });
+  });
  
   // Step 5
   document.getElementById('generateScriptBtn').addEventListener('click', generateFullScript);
@@ -3179,6 +3634,137 @@ Begin:`;
   document.getElementById('endBtn').addEventListener('click', emergencyEnd);
   document.getElementById('restartBtn').addEventListener('click', () => location.reload());
   document.getElementById('transcriptToggle')?.addEventListener('click', toggleTranscript);
+  document.getElementById('recordBtn')?.addEventListener('click', toggleRecording);
+  document.getElementById('fullscreenBtn')?.addEventListener('click', () => {
+    const stage = document.getElementById('stage');
+    if (!stage) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    } else {
+      stage.requestFullscreen?.() || stage.webkitRequestFullscreen?.();
+    }
+  });
+  document.addEventListener('fullscreenchange', () => {
+    const btn = document.getElementById('fullscreenBtn');
+    if (btn) btn.textContent = document.fullscreenElement ? '⛶ exit' : '⛶ fullscreen';
+  });
+
+  // ── Live Settings Panel ────────────────────────────────────────────
+  function openLivePanel() {
+    const panel = document.getElementById('livePanel');
+    const overlay = document.getElementById('livePanelOverlay');
+    if (!panel) return;
+    // Sync controls to current state before opening
+    const $v = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    $v('liveVizSelect', state.vizOverride === 'auto' ? (getMethod().visual) : state.vizOverride);
+    $v('liveSoundscapeSelect', state.soundscape);
+    $v('liveSoundVol', Math.round(state.droneVolume * 100));
+    $v('liveVoiceSpeed', Math.round(state.speechRate * 100));
+    $v('liveVoicePitch', Math.round((state.voicePitch || 0.85) * 100));
+    $v('liveVoiceVol', Math.round((state.voiceVolume ?? 1) * 100));
+    document.getElementById('liveSoundVolVal').textContent = Math.round(state.droneVolume * 100);
+    document.getElementById('liveVoiceSpeedVal').textContent = state.speechRate.toFixed(2) + '×';
+    document.getElementById('liveVoicePitchVal').textContent = (state.voicePitch || 0.85).toFixed(2);
+    document.getElementById('liveVoiceVolVal').textContent = Math.round((state.voiceVolume ?? 1) * 100);
+    // Sync HUD toggles
+    const hudMap = { liveFixDot:'fixationDot', liveText:'textDisplay', livePhaseDots:'phaseDots', livePhaseLabel:'phaseLabel', liveProgress:'progressBar', liveTime:'sessionTime', liveLabels:'labels' };
+    for (const [elId, key] of Object.entries(hudMap)) {
+      const el = document.getElementById(elId); if (el) el.checked = state.hud[key] !== false;
+    }
+    panel.classList.add('open');
+    if (overlay) overlay.classList.add('open');
+  }
+  function closeLivePanel() {
+    document.getElementById('livePanel')?.classList.remove('open');
+    document.getElementById('livePanelOverlay')?.classList.remove('open');
+  }
+
+  document.getElementById('liveSettingsBtn')?.addEventListener('click', () => {
+    const panel = document.getElementById('livePanel');
+    if (panel?.classList.contains('open')) closeLivePanel(); else openLivePanel();
+  });
+  document.getElementById('livePanelClose')?.addEventListener('click', closeLivePanel);
+  document.getElementById('livePanelOverlay')?.addEventListener('click', closeLivePanel);
+
+  // Live visual switch — tear down and rebuild mid-session
+  document.getElementById('liveVizSelect')?.addEventListener('change', e => {
+    const viz = e.target.value;
+    state.vizOverride = viz;
+    if (viz === 'none') {
+      stopVisuals();
+      const stage = document.getElementById('stage');
+      Array.from(stage.children).forEach(c => {
+        if (!c.classList.contains('fixation-dot') && !c.classList.contains('audio-indicator')
+          && !c.classList.contains('persona-indicator') && !c.classList.contains('method-indicator')
+          && !c.classList.contains('session-progress-wrap') && !c.classList.contains('transcript-panel')) c.remove();
+      });
+    } else if (viz === 'pulse' || viz === 'spiral') {
+      stopVisuals(); setupVisual(viz);
+    } else {
+      stopVisuals(); setupVisual(viz);
+    }
+  });
+
+  // Live soundscape switch — stop and restart with new type
+  document.getElementById('liveSoundscapeSelect')?.addEventListener('change', async e => {
+    const type = e.target.value;
+    state.soundscape = type;
+    state.droneEnabled = type !== 'none';
+    await drone.stop();
+    if (type !== 'none') {
+      await drone.start(state.droneVolume, type);
+      const ai = document.getElementById('audioIndicator');
+      if (ai) ai.textContent = '· ' + type + ' ·';
+    } else {
+      const ai = document.getElementById('audioIndicator');
+      if (ai) ai.textContent = '';
+    }
+  });
+
+  // Live audio sliders
+  document.getElementById('liveSoundVol')?.addEventListener('input', e => {
+    state.droneVolume = parseInt(e.target.value,10)/100; drone.setVolume(state.droneVolume);
+    document.getElementById('liveSoundVolVal').textContent = e.target.value;
+  });
+  document.getElementById('liveVoiceSpeed')?.addEventListener('input', e => {
+    state.speechRate = parseInt(e.target.value,10)/100;
+    document.getElementById('liveVoiceSpeedVal').textContent = (parseInt(e.target.value,10)/100).toFixed(2) + '×';
+  });
+  document.getElementById('liveVoicePitch')?.addEventListener('input', e => {
+    state.voicePitch = parseInt(e.target.value,10)/100;
+    document.getElementById('liveVoicePitchVal').textContent = (parseInt(e.target.value,10)/100).toFixed(2);
+  });
+  document.getElementById('liveVoiceVol')?.addEventListener('input', e => {
+    state.voiceVolume = parseInt(e.target.value,10)/100;
+    document.getElementById('liveVoiceVolVal').textContent = e.target.value;
+  });
+
+  // Live HUD toggles — apply immediately during session
+  const liveHudMap = { liveFixDot:'fixationDot', liveText:'textDisplay', livePhaseDots:'phaseDots', livePhaseLabel:'phaseLabel', liveProgress:'progressBar', liveTime:'sessionTime', liveLabels:'labels' };
+  const liveHudElements = { fixationDot:'fixationDot', textDisplay:'textDisplay', phaseDots:'phaseDots', phaseLabel:'phaseIndicator', progressBar:null, sessionTime:'sessionTime', labels:null };
+
+  for (const [elId, key] of Object.entries(liveHudMap)) {
+    document.getElementById(elId)?.addEventListener('change', e => {
+      state.hud[key] = e.target.checked;
+      // Also update the Step 4 checkboxes to stay in sync
+      const cfgId = 'cfg' + key.charAt(0).toUpperCase() + key.slice(1);
+      const cfgEl = document.getElementById(cfgId); if (cfgEl) cfgEl.checked = e.target.checked;
+      // Apply visibility immediately
+      const targetId = liveHudElements[key];
+      if (targetId) {
+        const el = document.getElementById(targetId); if (el) el.style.display = e.target.checked ? '' : 'none';
+      }
+      // Special cases
+      if (key === 'progressBar') {
+        document.querySelector('.session-progress-wrap')?.style.setProperty('display', e.target.checked ? '' : 'none');
+      }
+      if (key === 'labels') {
+        ['personaIndicator','methodIndicator','audioIndicator'].forEach(id => {
+          const el = document.getElementById(id); if (el) el.style.display = e.target.checked ? '' : 'none';
+        });
+      }
+    });
+  }
 
   // Keyboard controls during session
   document.addEventListener('keydown', e => {
@@ -3244,7 +3830,7 @@ Begin:`;
     if (!('speechSynthesis' in window)) { notify.info('Text-to-speech is not available in this browser.'); return; }
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(sample);
-    u.voice = voice; u.rate = rate; u.pitch = 0.85; u.volume = 1.0;
+    u.voice = voice; u.rate = rate; u.pitch = state.voicePitch || 0.85; u.volume = state.voiceVolume ?? 1.0;
     speechSynthesis.speak(u);
   });
 
@@ -3252,6 +3838,42 @@ Begin:`;
   document.getElementById('personaCancelBtn').addEventListener('click', closePersonaEditor);
   document.getElementById('personaSaveBtn').addEventListener('click', savePersonaFromForm);
   document.getElementById('personaModal').addEventListener('click', e => { if (e.target.id === 'personaModal') closePersonaEditor(); });
+
+  // Hypnotic Induction Profile quiz
+  document.getElementById('hipAssessBtn')?.addEventListener('click', () => {
+    const q1 = parseInt(document.getElementById('hipQ1')?.value || '1', 10);
+    const q2 = parseInt(document.getElementById('hipQ2')?.value || '1', 10);
+    const q3 = parseInt(document.getElementById('hipQ3')?.value || '1', 10);
+    const total = q1 + q2 + q3; // 0-9 range
+    const el = document.getElementById('hipResult');
+    if (!el) return;
+
+    let tier, desc, recMethods, recGuide;
+    if (total <= 2) {
+      tier = 'Low suggestibility';
+      desc = 'You tend toward analytical processing. This is not a limitation — it means structured, evidence-based methods work best for you. Avoid "just relax" approaches; your mind needs something to do.';
+      recMethods = 'Betty Erickson 3-2-1, Highway (monotony), Confusion Method, Hand Heaviness';
+      recGuide = 'The Scientist or The Driver';
+    } else if (total <= 5) {
+      tier = 'Moderate suggestibility';
+      desc = 'You have a good balance of analytical and imaginative processing. Most methods will work for you. You\'ll likely respond well to narrative approaches and may be surprised by demonstration effects.';
+      recMethods = 'Staircase Descent, Progressive Relaxation, Ericksonian, Fractionation';
+      recGuide = 'The Therapist or The Bartender';
+    } else {
+      tier = 'High suggestibility';
+      desc = 'You absorb experiences deeply and respond strongly to suggestion. Demonstration methods should produce vivid effects. You may find that advanced techniques like time distortion and hallucination work readily. Start with shorter sessions to gauge intensity.';
+      recMethods = 'Spiral Fixation, Eye-Roll (Spiegel), Arm Catalepsy, Time Distortion, Positive Hallucination';
+      recGuide = 'The Showman, The Mystic, or The Dominatrix';
+    }
+
+    el.innerHTML = `
+      <div class="detail-panel">
+        <div class="detail-title" style="color:var(--accent);">${tier} (score: ${total}/9)</div>
+        <div style="margin-bottom:8px;">${desc}</div>
+        <div style="font-size:0.78rem;"><strong>Recommended methods:</strong> ${recMethods}</div>
+        <div style="font-size:0.78rem; margin-top:4px;"><strong>Try starting with:</strong> ${recGuide}</div>
+      </div>`;
+  });
 
   // Init — async to wait for IDB storage migration
   (async function init() {
