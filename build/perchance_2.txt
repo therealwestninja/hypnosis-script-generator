@@ -605,6 +605,75 @@ body.in-session .footer {
   }
   .voice-preview-btn:hover { color: var(--text); border-color: var(--accent-soft); }
 
+  /* ============ MOOD CHECK-IN ============ */
+  .mood-row {
+    display: flex; gap: 4px; justify-content: center;
+    margin: 12px 0 6px;
+  }
+  .mood-btn {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 8px; padding: 8px 12px; font-size: 1.3rem;
+    cursor: pointer; transition: all 0.2s; opacity: 0.5;
+  }
+  .mood-btn:hover { opacity: 0.8; border-color: var(--accent-soft); }
+  .mood-btn.selected { opacity: 1; border-color: var(--accent); background: #131c28; transform: scale(1.15); }
+  .mood-label { font-size: 0.7rem; color: var(--text-faint); text-align: center; margin-bottom: 10px; }
+
+  /* ============ GROUNDING EXERCISE ============ */
+  .grounding-box {
+    background: var(--bg-soft); border: 1px solid var(--accent-green);
+    border-radius: 10px; padding: 18px; margin: 16px 0; text-align: left;
+  }
+  .grounding-box h3 {
+    font-size: 0.72rem; color: var(--accent-green);
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 0 0 12px; font-weight: 500;
+  }
+  .grounding-step {
+    font-size: 0.88rem; line-height: 1.6; color: var(--text-dim);
+    padding: 6px 0; border-bottom: 1px solid #1a2230;
+  }
+  .grounding-step:last-child { border-bottom: none; }
+  .grounding-step strong { color: var(--text); }
+
+  /* ============ SESSION STATS ============ */
+  .stats-bar {
+    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+    margin: 12px 0;
+  }
+  .stat-chip {
+    background: var(--bg-soft); border: 1px solid #1a2230;
+    border-radius: 8px; padding: 8px 14px; text-align: center;
+  }
+  .stat-chip .stat-num {
+    font-size: 1.2rem; font-weight: 300; color: var(--text);
+    display: block;
+  }
+  .stat-chip .stat-label {
+    font-size: 0.6rem; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .history-list { margin-top: 10px; }
+  .history-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #0f1318;
+    font-size: 0.78rem; color: var(--text-dim);
+  }
+  .history-item .h-date { color: var(--text-faint); min-width: 60px; }
+  .history-item .h-guide { color: var(--text); flex: 1; }
+  .history-item .h-dur { color: var(--text-faint); }
+
+  /* ============ KEYBOARD HINT ============ */
+  .kb-hint {
+    font-size: 0.6rem; color: var(--text-faint);
+    text-align: center; margin-top: 8px; letter-spacing: 0.04em;
+  }
+  .kb-hint kbd {
+    background: var(--bg-softer); border: 1px solid #2a3340;
+    border-radius: 3px; padding: 1px 5px; font-family: inherit;
+    font-size: 0.58rem;
+  }
+
   /* ============ COOLDOWN OVERLAY ============ */
   .cooldown-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -636,6 +705,7 @@ body.in-session .footer {
  
   <!-- ============ WIZARD ============ -->
   <div id="setup-wizard">
+    <div aria-live="polite" id="ariaStepAnnounce" class="sr-only" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden;"></div>
  
     <!-- STEPPER -->
     <div class="stepper" id="stepper">
@@ -689,6 +759,12 @@ body.in-session .footer {
       <details style="margin-top: 20px;">
         <summary>saved scripts (load a previous session)</summary>
         <div class="library-list" id="libraryList"></div>
+      </details>
+
+      <details style="margin-top: 10px;">
+        <summary>session history & stats</summary>
+        <div id="sessionStatsPanel"></div>
+        <div class="history-list" id="sessionHistoryList"></div>
       </details>
     </div>
  
@@ -904,15 +980,42 @@ body.in-session .footer {
       <button class="btn secondary" id="pauseBtn">pause</button>
       <button class="btn secondary" id="endBtn">end & re-alert</button>
     </div>
+    <div class="kb-hint"><kbd>Space</kbd> pause/resume · <kbd>Esc</kbd> end & re-alert</div>
   </div>
  
   <!-- POST-SESSION -->
   <div id="post-screen" style="display:none;">
     <div style="text-align:center; padding: 40px 0;">
       <div style="font-size: 2rem; color: var(--accent); margin-bottom: 16px;">·</div>
-      <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-dim);">Take a moment.<br>Notice how you feel.<br>Sip some water if you have it.</p>
+      <p style="font-size: 1.1rem; line-height: 1.7; color: var(--text-dim);" id="postMessage">Take a moment.<br>Notice how you feel.<br>Sip some water if you have it.</p>
+
+      <!-- Grounding exercise (shown after emergency end) -->
+      <div class="grounding-box" id="groundingBox" style="display:none;">
+        <h3>5-4-3-2-1 grounding</h3>
+        <div class="grounding-step"><strong>5 things</strong> you can see right now</div>
+        <div class="grounding-step"><strong>4 things</strong> you can physically touch or feel</div>
+        <div class="grounding-step"><strong>3 things</strong> you can hear</div>
+        <div class="grounding-step"><strong>2 things</strong> you can smell</div>
+        <div class="grounding-step"><strong>1 thing</strong> you can taste</div>
+        <div style="font-size:0.75rem; color:var(--text-faint); margin-top:10px; font-style:italic;">Take your time with each one. There is no rush.</div>
+      </div>
+
       <div class="post-summary" id="postSummary"></div>
       <div id="postTriggerBox"></div>
+
+      <!-- Mood check-in -->
+      <div id="moodCheckIn" style="margin-top: 16px;">
+        <div class="mood-label">how do you feel right now?</div>
+        <div class="mood-row" id="moodRow">
+          <button class="mood-btn" data-mood="1">😔</button>
+          <button class="mood-btn" data-mood="2">😐</button>
+          <button class="mood-btn" data-mood="3">🙂</button>
+          <button class="mood-btn" data-mood="4">😊</button>
+          <button class="mood-btn" data-mood="5">✨</button>
+        </div>
+        <div class="mood-label" id="moodFeedback"></div>
+      </div>
+
       <div style="display: flex; gap: 10px; justify-content: center; margin-top: 24px; flex-wrap: wrap;">
         <button class="btn secondary" id="postSaveBtn">save to library</button>
         <button class="btn" style="max-width: 240px;" id="restartBtn">begin a new session</button>
@@ -1064,7 +1167,7 @@ body.in-session .footer {
   const METHODS = [
     { id: 'highway', name: 'Highway', tagline: 'Sensory monotony + visual fixation.', tags: ['analytical', 'visual'], category: 'therapeutic', detail: 'Scrolling road lines, engine drone, repetitive minimal phrases. Eye fatigue plus auditory monotony produces trance through boredom rather than seduction. Best for analytical minds that resist verbal approaches.', visual: 'highway', drone: true, pacing: 'monotony', recommended: true },
     { id: 'spiral', name: 'Spiral Fixation', tagline: 'Rotating spiral; visual eye-fatigue mechanism.', tags: ['visual', 'classic'], category: 'therapeutic', detail: 'A logarithmic spiral rotates slowly. Sustained focus produces eye fatigue plus subtle perceptual artifacts (drift, expansion). Voice stays sparse to support the visual mechanism.', visual: 'spiral', drone: true, pacing: 'monotony' },
-    { id: 'betty-erickson', name: 'Betty Erickson 3-2-1', tagline: 'Structured sensory countdown. Analytical-friendly.', tags: ['structured', 'analytical'], category: 'therapeutic', detail: 'Notice 3 things you see, 3 you hear, 3 you feel. Then 2 each. Then 1 each. The structure occupies the analytical mind while attention progressively narrows from external to internal.', visual: 'pulse', drone: false, pacing: 'structured' },
+    { id: 'betty-erickson', name: 'Betty Erickson 3-2-1', tagline: 'Structured sensory countdown. Analytical-friendly.', tags: ['structured', 'analytical'], category: 'therapeutic', detail: 'Notice 3 things you see, 3 you hear, 3 you feel. Then 2 each. Then 1 each. The structure occupies the analytical mind while attention progressively narrows from external to internal.', visual: 'candle', drone: false, pacing: 'structured' },
     { id: 'staircase', name: 'Staircase Descent', tagline: 'Descend a staircase. Each step deeper.', tags: ['visual', 'classic'], category: 'therapeutic', detail: 'Eyes closed. Descend 10 stairs, each one deepening trance. At the bottom, arrive in a special place where the therapeutic suggestion is delivered.', visual: 'tunnel', drone: false, pacing: 'narrative' },
     { id: 'hand-heaviness', name: 'Hand Heaviness', tagline: 'Hand becomes heavy. The convincer IS the induction.', tags: ['ideomotor', 'convincer'], category: 'therapeutic', detail: 'Dominant hand palm-down on thigh. Focus on it. Suggestions of heaviness build until the hand actually feels heavier — that real, physical experience IS the trance state.', visual: 'pulse', drone: false, pacing: 'focused' },
     { id: 'confusion', name: 'Confusion Method', tagline: 'Overload analytical mind with paradoxes.', tags: ['analytical', 'resistant'], category: 'therapeutic', detail: 'Long sentences with embedded clauses, deliberate paradoxes, time distortion. The conscious mind tries to track and fails. When it gives up, trance happens by relief.', visual: 'vortex', drone: true, pacing: 'confusion' },
@@ -1093,16 +1196,16 @@ body.in-session .footer {
     // ── Rapid ──────────────────────────────────────────────────────
     { id: 'handshake-interrupt', name: 'Handshake Interrupt', tagline: 'Break the handshake pattern. Instant confusion drop.', tags: ['rapid', 'physical', 'ericksonian'], category: 'rapid', detail: 'Milton Erickson\'s signature. Reach out to shake your own left hand with your right — mid-handshake, freeze. The pattern-interrupt creates a moment of total blankness. Immediate suggestion fills the gap. Requires commitment and speed.', visual: 'vortex', drone: false, pacing: 'rapid' },
     { id: 'arm-drop', name: 'Arm Drop', tagline: 'Arm up, arm drops, you drop with it.', tags: ['rapid', 'physical', 'classic'], category: 'rapid', detail: 'Extend arm straight out, palm down. Stare at a spot on the back of the hand. When the arm is told to drop, close eyes simultaneously and drop INTO trance. The physical falling motion creates a kinesthetic anchor for mental "falling in." Simple, reliable, fast.', visual: 'pulse', drone: false, pacing: 'rapid' },
-    { id: 'magnetic-gaze', name: 'Magnetic Gaze', tagline: 'Lock eyes with a point. Cannot look away.', tags: ['rapid', 'visual', 'intense'], category: 'rapid', detail: 'Fix gaze on a single point (a thumbtack, a mark on the wall, the fixation dot). Do not blink. Suggestion that the point is pulling you in — magnetic attraction. Eye fatigue forces closure. The relief of closing IS the trance. One of the oldest induction methods known.', visual: 'pulse', drone: true, pacing: 'monotony' },
+    { id: 'magnetic-gaze', name: 'Magnetic Gaze', tagline: 'Lock eyes with a point. Cannot look away.', tags: ['rapid', 'visual', 'intense'], category: 'rapid', detail: 'Fix gaze on a single point (a thumbtack, a mark on the wall, the fixation dot). Do not blink. Suggestion that the point is pulling you in — magnetic attraction. Eye fatigue forces closure. The relief of closing IS the trance. One of the oldest induction methods known.', visual: 'candle, drone: true, pacing: 'monotony' },
     { id: 'dave-elman', name: 'Dave Elman Induction', tagline: 'The clinical standard. Fast, reliable, deep.', tags: ['rapid', 'clinical', 'classic'], category: 'rapid', detail: 'The gold standard clinical induction (1-3 minutes). Eye closure test → relaxation doubling → arm drop → number block. Each step proves depth before going further. Used by medical/dental hypnotists worldwide because it is fast, reliable, and produces verifiable somnambulism.', visual: 'pulse', drone: false, pacing: 'elman', recommended: true },
-    { id: 'shock-induction', name: 'Shock Induction', tagline: 'SLEEP! Instant authority drop.', tags: ['rapid', 'intense', 'stage'], category: 'rapid', detail: 'A sudden, authoritative command — "SLEEP!" — paired with a physical stimulus (a snap, a touch on the forehead, a hand pull). The startle response creates a momentary blank state. Immediate follow-up suggestions fill the void. Requires a highly suggestible state or prior conditioning. The most dramatic induction.', visual: 'vortex', drone: false, pacing: 'rapid' },
+    { id: 'shock-induction', name: 'Shock Induction', tagline: 'SLEEP! Instant authority drop.', tags: ['rapid', 'intense', 'stage'], category: 'rapid', detail: 'A sudden, authoritative command — "SLEEP!" — paired with a physical stimulus (a snap, a touch on the forehead, a hand pull). The startle response creates a momentary blank state. Immediate follow-up suggestions fill the void. Requires a highly suggestible state or prior conditioning. The most dramatic induction.', visual: 'starfield', drone: false, pacing: 'rapid' },
 
     // ── Advanced ───────────────────────────────────────────────────
     { id: 'time-distortion', name: 'Time Distortion', tagline: '5 minutes feels like an hour. Or a second.', tags: ['advanced', 'perception', 'ericksonian'], category: 'advanced', detail: 'Milton Erickson\'s advanced technique. Once in trance, suggest that time is stretching — one minute of clock time contains ten minutes of subjective experience. Or compress: an hour of work happens in seconds. The unconscious mind adjusts time perception. Verifiable by comparing felt duration to actual elapsed time.', visual: 'tunnel', drone: true, pacing: 'permissive' },
     { id: 'regression', name: 'Age Regression', tagline: 'Revisit a younger self. Access old resources.', tags: ['advanced', 'memory', 'therapeutic'], category: 'advanced', detail: 'Guide the subject back through time to a specific age or memory. Not for trauma work (that requires a live therapist) — but for accessing resource states: childhood wonder, a moment of pure confidence, a feeling you want to reconnect with. The younger self is experienced vividly, not just remembered.', visual: 'tunnel', drone: false, pacing: 'narrative' },
     { id: 'hallucination-pos', name: 'Positive Hallucination', tagline: 'See something that isn\'t there. Eyes open.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'Deep somnambulistic phenomenon. Suggest the presence of something not physically there — a colored light, a warm glow around the hands, a butterfly. Requires deep trance. The hallucination is experienced as real, not imagined. Start with simple additions (a color, a warmth) before attempting complex objects.', visual: 'mandala', drone: true, pacing: 'permissive' },
     { id: 'hallucination-neg', name: 'Negative Hallucination', tagline: 'Something disappears. It was there — now it\'s gone.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'The opposite of positive hallucination: something present becomes invisible. Start with a small object — a pen, a cup. Suggest it is fading, becoming transparent, vanishing. In deep somnambulism, the subject genuinely cannot see the object. One of the deepest phenomena measurable.', visual: 'vortex', drone: true, pacing: 'permissive' },
-    { id: 'somnambulism', name: 'Eyes-Open Somnambulism', tagline: 'Deepest trance. Eyes open. Fully responsive.', tags: ['advanced', 'deep', 'rare'], category: 'advanced', detail: 'The deepest trance state — eyes open, moving normally, speaking normally, but profoundly in trance. Looks like being awake but the unconscious is fully dominant. Subject can hallucinate, experience amnesia, and accept complex suggestions. Requires extensive prior trance experience and a skilled induction path.', visual: 'colorwash', drone: true, pacing: 'permissive' },
+    { id: 'somnambulism', name: 'Eyes-Open Somnambulism', tagline: 'Deepest trance. Eyes open. Fully responsive.', tags: ['advanced', 'deep', 'rare'], category: 'advanced', detail: 'The deepest trance state — eyes open, moving normally, speaking normally, but profoundly in trance. Looks like being awake but the unconscious is fully dominant. Subject can hallucinate, experience amnesia, and accept complex suggestions. Requires extensive prior trance experience and a skilled induction path.', visual: 'moire', drone: true, pacing: 'permissive' },
     { id: 'double-induction', name: 'Double Induction', tagline: 'Two voice tracks. Overwhelm the conscious mind.', tags: ['advanced', 'confusion', 'intense'], category: 'advanced', detail: 'Two simultaneous voice streams — one analytical, one emotional. The conscious mind cannot track both and gives up, producing immediate depth. In self-hypnosis: alternate between two narration styles within the same script, rapidly switching register. Disorientation is the mechanism.', visual: 'vortex', drone: true, pacing: 'confusion' },
     { id: 'anesthesia-full', name: 'Full-Body Anesthesia', tagline: 'Total numbness. Clinical depth.', tags: ['advanced', 'pain', 'clinical'], category: 'advanced', detail: 'Extension of glove anesthesia to the entire body. Progressive numbness spreading from extremities inward. Historically used for surgery before chemical anesthesia existed. Requires deep somnambulism. The body becomes a distant object — present but unfelt. Profound dissociation from physical sensation.', visual: 'colorwash', drone: true, pacing: 'body-scan' },
   ];
@@ -1297,6 +1400,14 @@ body.in-session .footer {
     if (n === 4) { renderConfigSummary(); }
     if (n === 5) { refreshSummary(); }
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Accessibility: announce step change and move focus
+    const stepNames = { 1: 'Choose Your Guide', 2: 'Choose Your Method', 3: 'Set Your Intention', 4: 'Configure the Session', 5: 'Generate Your Session' };
+    const announce = document.getElementById('ariaStepAnnounce');
+    if (announce) announce.textContent = `Step ${n} of ${TOTAL_STEPS}: ${stepNames[n] || ''}`;
+    // Move focus to step heading
+    const heading = document.querySelector(`.step-content[data-step="${n}"] .step-title`);
+    if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus(); }
   }
  
   function updateStepUI() {
@@ -1877,6 +1988,88 @@ body.in-session .footer {
     ctx.fillStyle = `hsla(${mainHue}, 50%, 70%, 0.8)`; ctx.fill();
   }
 
+  // Moiré — historically the most potent trance device (per ROADMAP)
+  // Two concentric-ring patterns with one center slowly orbiting the other
+  function renderMoire(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, maxR = Math.max(W, H) * 0.8;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(136,136,136,0.45)'; ctx.lineWidth = 1;
+    // First grating: centered
+    for (let r = 6; r < maxR; r += 12) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+    }
+    // Second grating: orbiting offset
+    const ox = cx + Math.cos(t * 0.15) * 18;
+    const oy = cy + Math.sin(t * 0.12) * 14;
+    ctx.strokeStyle = 'rgba(136,136,136,0.4)';
+    for (let r = 6; r < maxR; r += 12) {
+      ctx.beginPath(); ctx.arc(ox, oy, r, 0, Math.PI * 2); ctx.stroke();
+    }
+    // Soft vignette
+    const vig = ctx.createRadialGradient(cx, cy, maxR * 0.2, cx, cy, maxR * 0.6);
+    vig.addColorStop(0, 'transparent'); vig.addColorStop(1, 'rgba(0,0,0,0.7)');
+    ctx.fillStyle = vig; ctx.fillRect(0, 0, W, H);
+  }
+
+  // Starfield warp tunnel — 3D stars projected to 2D with streak lines
+  function renderStarfield(ctx, W, H, t, color) {
+    const cx = W/2, cy = H/2, STARS = 200, focal = 180, rgb = hexToRgb(color);
+    if (!renderStarfield._pool) {
+      renderStarfield._pool = [];
+      for (let i = 0; i < STARS; i++) renderStarfield._pool.push({
+        x: (Math.random() - 0.5) * 600, y: (Math.random() - 0.5) * 600,
+        z: Math.random() * 600, psx: 0, psy: 0
+      });
+    }
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(0, 0, W, H);
+    const speed = 1.5 + Math.sin(t * 0.3) * 0.5;
+    for (const s of renderStarfield._pool) {
+      const psx = s.psx, psy = s.psy;
+      s.z -= speed;
+      if (s.z < 1) { s.x = (Math.random()-0.5)*600; s.y = (Math.random()-0.5)*600; s.z = 600; s.psx = cx; s.psy = cy; continue; }
+      const sx = s.x / s.z * focal + cx;
+      const sy = s.y / s.z * focal + cy;
+      s.psx = sx; s.psy = sy;
+      if (sx < 0 || sx > W || sy < 0 || sy > H) continue;
+      const brightness = Math.min(1, (600 - s.z) / 400);
+      const size = Math.max(0.5, (1 - s.z / 600) * 3);
+      ctx.fillStyle = `rgba(${rgb},${brightness})`;
+      // Streak line from previous position
+      if (psx > 0 && Math.abs(sx - psx) < 40) {
+        ctx.beginPath(); ctx.moveTo(psx, psy); ctx.lineTo(sx, sy);
+        ctx.strokeStyle = `rgba(${rgb},${brightness * 0.5})`; ctx.lineWidth = size * 0.5; ctx.stroke();
+      }
+      ctx.fillRect(sx - size/2, sy - size/2, size, size);
+    }
+  }
+
+  // Candle focal — soft radial glow with position jitter (classic Mesmerist's candle)
+  function renderCandle(ctx, W, H, t, color) {
+    const cx = W/2, cy = H * 0.4, rgb = hexToRgb(color);
+    ctx.fillStyle = 'rgba(0,0,0,0.08)'; ctx.fillRect(0, 0, W, H);
+    // Flame jitter
+    const jx = cx + (Math.random() - 0.5) * 4;
+    const jy = cy + (Math.random() - 0.5) * 3;
+    const baseR = 30 + Math.sin(t * 2.5) * 5 + Math.sin(t * 4.1) * 3;
+    // Outer glow
+    const outer = ctx.createRadialGradient(jx, jy, 0, jx, jy, baseR * 3);
+    outer.addColorStop(0, `rgba(${rgb},0.15)`);
+    outer.addColorStop(0.4, `rgba(${rgb},0.05)`);
+    outer.addColorStop(1, 'transparent');
+    ctx.fillStyle = outer; ctx.fillRect(0, 0, W, H);
+    // Inner flame
+    const inner = ctx.createRadialGradient(jx, jy - 4, 0, jx, jy, baseR);
+    inner.addColorStop(0, 'rgba(255,240,200,0.7)');
+    inner.addColorStop(0.3, `rgba(${rgb},0.4)`);
+    inner.addColorStop(0.7, `rgba(${rgb},0.08)`);
+    inner.addColorStop(1, 'transparent');
+    ctx.beginPath(); ctx.arc(jx, jy, baseR, 0, Math.PI * 2);
+    ctx.fillStyle = inner; ctx.fill();
+    // Bright core
+    ctx.beginPath(); ctx.arc(jx, jy - 2, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,240,0.9)'; ctx.fill();
+  }
+
   const VIZ_RENDERERS = {
     tunnel: renderTunnel,
     'pendulum-viz': renderPendulumViz,
@@ -1886,6 +2079,9 @@ body.in-session .footer {
     colorwash: renderColorWash,
     'canvas-pulse': renderCanvasPulse,
     breathing: renderBreathingCircle,
+    moire: renderMoire,
+    starfield: renderStarfield,
+    candle: renderCandle,
   };
 
   // Phase-based speed multipliers for visuals
@@ -2309,6 +2505,69 @@ Begin:`;
     if (!saveLibrary(lib)) { notify.error('Could not save: browser storage may be full.'); return; }
     renderLibrary(); closeSaveScriptModal();
   }
+
+  // ====================================================================
+  // SESSION HISTORY & STATS
+  // ====================================================================
+  async function renderSessionHistory() {
+    const panel = document.getElementById('sessionStatsPanel');
+    const list = document.getElementById('sessionHistoryList');
+    if (!panel || !list) return;
+
+    const history = (await idbGet('stillness_history_v1')) || [];
+    if (history.length === 0) {
+      panel.innerHTML = '';
+      list.innerHTML = '<div class="library-empty">no sessions yet — complete a session to see stats</div>';
+      return;
+    }
+
+    // Calculate stats
+    const totalSessions = history.length;
+    const totalMinutes = Math.round(history.reduce((sum, s) => sum + (s.durationSec || 0), 0) / 60);
+    const completed = history.filter(s => s.completed).length;
+
+    // Streak calculation
+    const today = new Date(); today.setHours(0,0,0,0);
+    const dayMs = 86400000;
+    const sessionDays = [...new Set(history.map(s => {
+      const d = new Date(s.date); d.setHours(0,0,0,0); return d.getTime();
+    }))].sort((a,b) => b - a);
+
+    let streak = 0;
+    let checkDay = today.getTime();
+    for (const day of sessionDays) {
+      if (day === checkDay || day === checkDay - dayMs) {
+        streak++;
+        checkDay = day;
+      } else break;
+    }
+
+    // Favorite guide
+    const guideCounts = {};
+    history.forEach(s => { guideCounts[s.guide] = (guideCounts[s.guide] || 0) + 1; });
+    const favGuide = Object.entries(guideCounts).sort((a,b) => b[1] - a[1])[0]?.[0] || '—';
+
+    panel.innerHTML = `
+      <div class="stats-bar">
+        <div class="stat-chip"><span class="stat-num">${totalSessions}</span><span class="stat-label">sessions</span></div>
+        <div class="stat-chip"><span class="stat-num">${totalMinutes}</span><span class="stat-label">minutes</span></div>
+        <div class="stat-chip"><span class="stat-num">${streak}</span><span class="stat-label">day streak</span></div>
+        <div class="stat-chip"><span class="stat-num">${Math.round(completed/totalSessions*100)}%</span><span class="stat-label">completed</span></div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-faint);text-align:center;">favourite guide: ${escapeHtml(favGuide)}</div>`;
+
+    // Recent sessions list (last 10)
+    list.innerHTML = '';
+    history.slice(0, 10).forEach(s => {
+      const d = new Date(s.date);
+      const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      const mins = Math.round((s.durationSec || 0) / 60);
+      const item = document.createElement('div');
+      item.className = 'history-item';
+      item.innerHTML = `<span class="h-date">${dateStr}</span><span class="h-guide">${escapeHtml(s.guide || '—')} · ${escapeHtml(s.method || '—')}</span><span class="h-dur">${mins}m${s.completed ? '' : ' ✕'}</span>`;
+      list.appendChild(item);
+    });
+  }
  
   // ====================================================================
   // SESSION PLAYER
@@ -2590,7 +2849,22 @@ Begin:`;
     // Emergency cooldown (30s after emergency end)
     if (wasEmergency) {
       state._cooldownUntil = Date.now() + 30000;
+      // Show grounding exercise after emergency end
+      const groundingBox = document.getElementById('groundingBox');
+      if (groundingBox) groundingBox.style.display = 'block';
+      const postMsg = document.getElementById('postMessage');
+      if (postMsg) postMsg.innerHTML = 'You ended the session early.<br>That\'s okay — take a moment to re-orient.';
+    } else {
+      const groundingBox = document.getElementById('groundingBox');
+      if (groundingBox) groundingBox.style.display = 'none';
+      const postMsg = document.getElementById('postMessage');
+      if (postMsg) postMsg.innerHTML = 'Take a moment.<br>Notice how you feel.<br>Sip some water if you have it.';
     }
+
+    // Reset mood selection
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    const moodFeedback = document.getElementById('moodFeedback');
+    if (moodFeedback) moodFeedback.textContent = '';
   }
 
   // Persona-specific re-alert scripts
@@ -2704,6 +2978,51 @@ Begin:`;
   document.getElementById('endBtn').addEventListener('click', emergencyEnd);
   document.getElementById('restartBtn').addEventListener('click', () => location.reload());
 
+  // Keyboard controls during session
+  document.addEventListener('keydown', e => {
+    if (document.getElementById('session-screen').style.display === 'none') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.code === 'Space') { e.preventDefault(); togglePause(); }
+    if (e.key === 'Escape') { e.preventDefault(); emergencyEnd(); }
+  });
+
+  // Wake Lock re-acquire + pause/resume on visibility change
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && state._sessionStartTime && !state.abortFlag) {
+      // Re-acquire wake lock
+      try {
+        if (navigator.wakeLock && !state._wakeLock) {
+          state._wakeLock = await navigator.wakeLock.request('screen');
+          state._wakeLock.addEventListener('release', () => { state._wakeLock = null; });
+        }
+      } catch(e) {}
+      // Resume audio context if suspended
+      if (drone.ctx?.state === 'suspended') { try { await drone.ctx.resume(); } catch(e) {} }
+    } else if (document.visibilityState === 'hidden' && state._sessionStartTime && !state.abortFlag) {
+      // Suspend audio context to save battery when tab hidden
+      if (drone.ctx?.state === 'running') { try { drone.ctx.suspend(); } catch(e) {} }
+    }
+  });
+
+  // Mood check-in
+  document.getElementById('moodRow')?.addEventListener('click', async e => {
+    const btn = e.target.closest('.mood-btn');
+    if (!btn) return;
+    const mood = parseInt(btn.dataset.mood, 10);
+    document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    const labels = { 1: 'noted — be gentle with yourself', 2: 'that\'s okay', 3: 'good', 4: 'nice', 5: 'wonderful' };
+    const fb = document.getElementById('moodFeedback');
+    if (fb) fb.textContent = labels[mood] || '';
+
+    // Save mood to most recent session record
+    const history = (await idbGet('stillness_history_v1')) || [];
+    if (history.length > 0) {
+      history[0].postMood = mood;
+      await idbSet('stillness_history_v1', history);
+    }
+  });
+
   // Post-session save
   document.getElementById('postSaveBtn').addEventListener('click', () => {
     if (!state.fullScript) { notify.warn('No script to save.'); return; }
@@ -2741,6 +3060,7 @@ Begin:`;
     renderMethodGrid();
     renderMethodDetail();
     renderLibrary();
+    renderSessionHistory();
     updateIntentionHint();
     // Set soundscape default based on first method
     const defaultMethod = getMethod();
