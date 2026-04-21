@@ -674,6 +674,40 @@ body.in-session .footer {
     font-size: 0.58rem;
   }
 
+  /* ============ TRANSCRIPT PANEL ============ */
+  .transcript-panel {
+    position: absolute; inset: 0; background: rgba(0,0,0,0.92);
+    z-index: 20; overflow-y: auto; padding: 20px 16px;
+    display: none; font-size: 0.82rem; line-height: 1.7;
+    color: var(--text-dim); white-space: pre-wrap;
+  }
+  .transcript-panel.visible { display: block; }
+  .transcript-panel .t-phase {
+    color: var(--accent); font-size: 0.68rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    margin: 16px 0 6px; font-weight: 500;
+  }
+  .transcript-panel .t-active {
+    color: var(--text); font-weight: 400;
+    background: rgba(107,148,184,0.08);
+    padding: 2px 4px; border-radius: 3px;
+  }
+  .transcript-toggle {
+    background: transparent; border: 1px solid #2a3340;
+    color: var(--text-faint); border-radius: 6px;
+    padding: 4px 10px; font-size: 0.7rem; cursor: pointer;
+  }
+  .transcript-toggle:hover { color: var(--text-dim); }
+
+  /* ============ SHARE MODAL ============ */
+  .share-url-box {
+    background: var(--bg); border: 1px solid #1a2230;
+    border-radius: 6px; padding: 10px; word-break: break-all;
+    font-family: ui-monospace, monospace; font-size: 0.72rem;
+    color: var(--text); margin: 10px 0; max-height: 80px;
+    overflow-y: auto; user-select: all;
+  }
+
   /* ============ COOLDOWN OVERLAY ============ */
   .cooldown-overlay {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
@@ -765,6 +799,20 @@ body.in-session .footer {
         <summary>session history & stats</summary>
         <div id="sessionStatsPanel"></div>
         <div class="history-list" id="sessionHistoryList"></div>
+      </details>
+
+      <details style="margin-top: 10px;">
+        <summary>backup & restore</summary>
+        <div style="padding: 8px 0;">
+          <div class="sublabel" style="margin-bottom: 10px;">Export all your personas, saved scripts, and session history as a single JSON file. Import to restore on another device or browser.</div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn secondary" id="backupBtn" style="flex:1; font-size:0.82rem; padding:8px 12px;">↓ export backup</button>
+            <label class="btn secondary" style="flex:1; font-size:0.82rem; padding:8px 12px; text-align:center; cursor:pointer;">
+              ↑ import backup
+              <input type="file" id="restoreInput" accept=".json" style="display:none;">
+            </label>
+          </div>
+        </div>
       </details>
     </div>
  
@@ -939,10 +987,23 @@ body.in-session .footer {
         <div class="script-actions">
           <button class="btn secondary" id="regenScriptBtn">regenerate</button>
           <button class="btn secondary" id="saveScriptBtn">save to library</button>
+          <button class="btn secondary" id="exportScriptBtn">↓ download .txt</button>
+          <button class="btn secondary" id="shareConfigBtn">⚯ share config</button>
           <button class="btn green" id="beginBtn">begin session →</button>
         </div>
       </div>
- 
+
+      <div style="text-align:center; margin-top: 16px;" id="preMoodSection">
+        <div class="mood-label">how are you feeling right now? (optional — helps track progress)</div>
+        <div class="mood-row" id="preMoodRow">
+          <button class="mood-btn" data-mood="1">😔</button>
+          <button class="mood-btn" data-mood="2">😐</button>
+          <button class="mood-btn" data-mood="3">🙂</button>
+          <button class="mood-btn" data-mood="4">😊</button>
+          <button class="mood-btn" data-mood="5">✨</button>
+        </div>
+      </div>
+
       <div class="disclaimer">
         <strong>Reminder:</strong> Therapeutic methods feel like nothing for the first 5–8 minutes — that's the mechanism. Demonstration methods should produce noticeable effects. Don't drive after. Skip if you have epilepsy, dissociative disorders, or psychosis.
       </div>
@@ -973,12 +1034,14 @@ body.in-session .footer {
       <div class="audio-indicator" id="audioIndicator"></div>
       <div class="persona-indicator" id="personaIndicator"></div>
       <div class="session-progress-wrap"><div class="session-progress-fill" id="sessionProgressFill"></div></div>
+      <div class="transcript-panel" id="transcriptPanel"></div>
     </div>
     <div class="text-display" id="textDisplay">·</div>
     <div class="session-time" id="sessionTime"></div>
     <div class="session-controls">
       <button class="btn secondary" id="pauseBtn">pause</button>
       <button class="btn secondary" id="endBtn">end & re-alert</button>
+      <button class="transcript-toggle" id="transcriptToggle">📜 script</button>
     </div>
     <div class="kb-hint"><kbd>Space</kbd> pause/resume · <kbd>Esc</kbd> end & re-alert</div>
   </div>
@@ -2568,7 +2631,121 @@ Begin:`;
       list.appendChild(item);
     });
   }
- 
+
+  // ====================================================================
+  // EXPORT, SHARE, BACKUP/RESTORE
+  // ====================================================================
+  function exportScript() {
+    const script = document.getElementById('scriptText')?.value?.trim();
+    if (!script) { notify.warn('No script to export.'); return; }
+    const persona = getPersona(), method = getMethod();
+    const header = `# Hypnosis Script\n# Guide: ${persona.name} | Method: ${method.name} | Length: ${state.length}\n# Generated: ${new Date().toLocaleDateString()}\n\n`;
+    const blob = new Blob([header + script], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hypnosis-${method.id}-${state.length}-${Date.now()}.txt`;
+    a.click(); URL.revokeObjectURL(a.href);
+    notify.success('Script downloaded.');
+  }
+
+  async function shareConfig() {
+    const config = {
+      p: state.selectedPersonaId, m: state.selectedMethodId,
+      i: state.intentionType, l: state.length, s: state.soundscape,
+      r: state.speechRate,
+      t: document.getElementById('intentionInput')?.value?.trim() || '',
+    };
+    const json = JSON.stringify(config);
+    let encoded;
+    try {
+      const stream = new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'));
+      const compressed = await new Response(stream).arrayBuffer();
+      encoded = btoa(String.fromCharCode(...new Uint8Array(compressed)));
+    } catch(e) { encoded = btoa(json); }
+    const url = window.location.href.split('#')[0] + '#cfg=' + encoded;
+    if (navigator.share && navigator.canShare?.({ url })) {
+      try { await navigator.share({ title: 'Hypnosis Session Config', url }); return; } catch(e) {}
+    }
+    try { await navigator.clipboard.writeText(url); notify.success('Share link copied to clipboard.'); }
+    catch(e) { prompt('Copy this share link:', url); }
+  }
+
+  async function loadSharedConfig() {
+    const hash = window.location.hash;
+    if (!hash.startsWith('#cfg=')) return;
+    const encoded = hash.slice(5);
+    let json;
+    try {
+      const bytes = Uint8Array.from(atob(encoded), c => c.charCodeAt(0));
+      const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+      json = await new Response(stream).text();
+    } catch(e) { try { json = atob(encoded); } catch(e2) { return; } }
+    try {
+      const cfg = JSON.parse(json);
+      if (cfg.p && state.personas.find(p => p.id === cfg.p)) state.selectedPersonaId = cfg.p;
+      if (cfg.m && METHODS.find(m => m.id === cfg.m)) state.selectedMethodId = cfg.m;
+      if (cfg.i && INTENTION_TYPES[cfg.i]) { state.intentionType = cfg.i; document.getElementById('intentionType').value = cfg.i; }
+      if (cfg.l && PHASE_DURATIONS[cfg.l]) { state.length = cfg.l; document.getElementById('lengthSelect').value = cfg.l; }
+      if (cfg.s) state.soundscape = cfg.s;
+      if (cfg.r) state.speechRate = Math.max(0.5, Math.min(1, cfg.r));
+      if (cfg.t) document.getElementById('intentionInput').value = String(cfg.t).slice(0, 500);
+      renderPersonaGrid(); renderPersonaDetail(); renderMethodGrid(); renderMethodDetail(); updateStepUI();
+      notify.info('Shared session config loaded. Review and adjust before starting.');
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch(e) { console.error('Failed to parse shared config:', e); }
+  }
+
+  async function exportBackup() {
+    const backup = { version: 2, exportedAt: Date.now(), personas: loadCustomPersonas(), library: loadLibrary(), history: (await idbGet('stillness_history_v1')) || [] };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `stillness-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(a.href); notify.success('Backup exported.');
+  }
+
+  async function importBackup(file) {
+    try {
+      const backup = JSON.parse(await file.text());
+      if (!backup.version) { notify.error('Invalid backup file.'); return; }
+      const ep = loadCustomPersonas(), eIds = new Set(ep.map(p => p.id));
+      const np = (backup.personas||[]).filter(p => !eIds.has(p.id));
+      if (np.length) { saveCustomPersonas([...ep,...np]); refreshPersonas(); renderPersonaGrid(); }
+      const el = loadLibrary(), elIds = new Set(el.map(l => l.id));
+      const nl = (backup.library||[]).filter(l => !elIds.has(l.id));
+      if (nl.length) { saveLibrary([...nl,...el]); renderLibrary(); }
+      const eh = (await idbGet('stillness_history_v1'))||[], ehIds = new Set(eh.map(h => h.id));
+      const nh = (backup.history||[]).filter(h => !ehIds.has(h.id));
+      if (nh.length) { const m = [...nh,...eh].sort((a,b)=>(b.date||0)-(a.date||0)); m.length = Math.min(m.length,50); await idbSet('stillness_history_v1',m); renderSessionHistory(); }
+      notify.success(`Imported: ${np.length} personas, ${nl.length} scripts, ${nh.length} sessions.`);
+    } catch(e) { notify.error('Import failed: ' + e.message); }
+  }
+
+  // ====================================================================
+  // TRANSCRIPT
+  // ====================================================================
+  function populateTranscript() {
+    const panel = document.getElementById('transcriptPanel');
+    if (!panel || !state.parsedScript) return;
+    const phases = ['settling','induction','deepener','work','emergence'];
+    const labels = { settling:'Settling', induction:'Induction', deepener:'Deepener', work:'Work', emergence:'Emergence' };
+    let html = '';
+    for (const phase of phases) {
+      const text = state.parsedScript[phase];
+      if (!text || text.trim().length < 10) continue;
+      const clean = text.replace(/^===\s*\w+\s*===\s*/i, '').replace(/\[PAUSE\s+\d+\]/gi, ' ⋯ ').trim();
+      html += `<div class="t-phase">${labels[phase]}</div><div>${escapeHtml(clean)}</div>`;
+    }
+    panel.innerHTML = html;
+  }
+
+  function toggleTranscript() {
+    const panel = document.getElementById('transcriptPanel');
+    if (!panel) return;
+    panel.classList.toggle('visible');
+    const btn = document.getElementById('transcriptToggle');
+    if (btn) btn.textContent = panel.classList.contains('visible') ? '✕ close' : '📜 script';
+  }
+
   // ====================================================================
   // SESSION PLAYER
   // ====================================================================
@@ -2608,6 +2785,10 @@ Begin:`;
     document.querySelectorAll('.phase-dot').forEach(d => { d.classList.remove('active','done'); });
 
     setupVisual(method.visual);
+    populateTranscript();
+    document.getElementById('transcriptPanel')?.classList.remove('visible');
+    const tBtn = document.getElementById('transcriptToggle');
+    if (tBtn) tBtn.textContent = '📜 script';
 
     // Start soundscape (replaces old drone toggle)
     if (state.soundscape && state.soundscape !== 'none') {
@@ -2800,6 +2981,7 @@ Begin:`;
       soundscape: state.soundscape,
       durationSec: elapsed,
       completed: !wasEmergency,
+      preMood: state._preMood || null,
     };
     const history = (await idbGet('stillness_history_v1')) || [];
     history.unshift(sessionRecord);
@@ -2968,15 +3150,35 @@ Begin:`;
   document.getElementById('generateScriptBtn').addEventListener('click', generateFullScript);
   document.getElementById('regenScriptBtn').addEventListener('click', generateFullScript);
   document.getElementById('saveScriptBtn').addEventListener('click', openSaveScriptModal);
+  document.getElementById('exportScriptBtn').addEventListener('click', exportScript);
+  document.getElementById('shareConfigBtn').addEventListener('click', shareConfig);
   document.getElementById('saveScriptCancelBtn').addEventListener('click', closeSaveScriptModal);
   document.getElementById('saveScriptConfirmBtn').addEventListener('click', confirmSaveScript);
   document.getElementById('saveScriptModal').addEventListener('click', e => { if (e.target.id === 'saveScriptModal') closeSaveScriptModal(); });
   document.getElementById('beginBtn').addEventListener('click', startSession);
+
+  // Pre-session mood
+  document.getElementById('preMoodRow')?.addEventListener('click', e => {
+    const btn = e.target.closest('.mood-btn');
+    if (!btn) return;
+    document.querySelectorAll('#preMoodRow .mood-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    state._preMood = parseInt(btn.dataset.mood, 10);
+  });
+
+  // Backup/restore
+  document.getElementById('backupBtn')?.addEventListener('click', exportBackup);
+  document.getElementById('restoreInput')?.addEventListener('change', e => {
+    const file = e.target.files?.[0];
+    if (file) importBackup(file);
+    e.target.value = ''; // Reset so same file can be re-imported
+  });
  
   // Session
   document.getElementById('pauseBtn').addEventListener('click', togglePause);
   document.getElementById('endBtn').addEventListener('click', emergencyEnd);
   document.getElementById('restartBtn').addEventListener('click', () => location.reload());
+  document.getElementById('transcriptToggle')?.addEventListener('click', toggleTranscript);
 
   // Keyboard controls during session
   document.addEventListener('keydown', e => {
@@ -3069,6 +3271,9 @@ Begin:`;
     const ssSelect = document.getElementById('soundscapeSelect');
     if (ssSelect) ssSelect.value = state.soundscape;
     updateStepUI();
+
+    // Load shared config from URL fragment if present
+    await loadSharedConfig();
 
     // AI preload (delayed on mobile to avoid slowing page load)
     if (typeof root !== 'undefined' && root.aiTextPlugin) {
