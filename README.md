@@ -144,11 +144,9 @@ Built for [Perchance.org/hypnosis-script-generator](https://perchance.org/hypnos
 
 This is a Perchance generator — no installation required.
 
-1. Visit the generator page on Perchance.org
+1. Visit the generator page at [Perchance.org/hypnosis-script-generator](https://perchance.org/hypnosis-script-generator)
 2. The tool runs entirely in your browser
 3. All data is stored locally in IndexedDB
-
-To self-host or fork: copy the single HTML file into a Perchance generator's HTML panel, or serve it as a standalone HTML file.
 
 ---
 
