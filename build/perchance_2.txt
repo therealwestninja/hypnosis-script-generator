@@ -166,6 +166,14 @@
   }
   .card.category-demonstration { border-top: 2px solid var(--accent-purple); }
   .card.selected.category-demonstration { border-color: var(--accent-purple); background: #1a1420; }
+  .card.category-somatic { border-top: 2px solid var(--accent-green); }
+  .card.selected.category-somatic { border-color: var(--accent-green); background: #121a16; }
+  .card.category-authoritarian { border-top: 2px solid #d46a6a; }
+  .card.selected.category-authoritarian { border-color: #d46a6a; background: #1a1214; }
+  .card.category-rapid { border-top: 2px solid #d4a74a; }
+  .card.selected.category-rapid { border-color: #d4a74a; background: #1a1810; }
+  .card.category-advanced { border-top: 2px solid #e06888; }
+  .card.selected.category-advanced { border-color: #e06888; background: #1a1218; }
   .card .card-actions { position: absolute; top: 6px; right: 6px; display: none; gap: 4px; }
   .card.is-custom:hover .card-actions { display: flex; }
   .card .card-action-btn {
@@ -636,6 +644,8 @@ body.in-session .footer {
         <div class="filter-tab active" data-filter="all">all</div>
         <div class="filter-tab" data-filter="contemplative">contemplative</div>
         <div class="filter-tab" data-filter="showman">showman</div>
+        <div class="filter-tab" data-filter="somatic">somatic</div>
+        <div class="filter-tab" data-filter="authoritarian">authoritarian</div>
       </div>
       <div class="card-grid" id="personaGrid"></div>
       <div class="detail-panel" id="personaDetail"></div>
@@ -655,7 +665,10 @@ body.in-session .footer {
       <div class="filter-tabs" id="methodFilterTabs">
         <div class="filter-tab active" data-filter="all">all</div>
         <div class="filter-tab" data-filter="therapeutic">therapeutic</div>
+        <div class="filter-tab" data-filter="somatic">somatic</div>
         <div class="filter-tab" data-filter="demonstration">demonstration</div>
+        <div class="filter-tab" data-filter="rapid">rapid</div>
+        <div class="filter-tab" data-filter="advanced">advanced</div>
       </div>
       <div class="card-grid" id="methodGrid"></div>
       <div class="detail-panel" id="methodDetail"></div>
@@ -671,15 +684,36 @@ body.in-session .footer {
       <div class="field-group">
         <label class="field-label">type of change</label>
         <select id="intentionType">
-          <option value="emotional">Emotional state shift</option>
-          <option value="trigger" selected>Post-hypnotic trigger — "feel X when Y happens"</option>
-          <option value="behavior">Behavior change</option>
-          <option value="release">Release / let go</option>
-          <option value="perception">Perception shift</option>
-          <option value="anchor">Install an anchor (touch/gesture → state)</option>
-          <option value="convincer">Convincer demonstration</option>
-          <option value="novelty">Novelty effect / party trick</option>
-          <option value="trance">Just experience trance (no specific goal)</option>
+          <optgroup label="Foundation">
+            <option value="emotional">Emotional state shift</option>
+            <option value="trigger" selected>Post-hypnotic trigger — "feel X when Y happens"</option>
+            <option value="behavior">Behavior change</option>
+            <option value="release">Release / let go</option>
+            <option value="perception">Perception shift</option>
+            <option value="anchor">Install an anchor (touch/gesture → state)</option>
+            <option value="trance">Just experience trance (no specific goal)</option>
+          </optgroup>
+          <optgroup label="Performance">
+            <option value="performance">Peak performance / flow state</option>
+            <option value="focus">Deep focus / concentration</option>
+            <option value="creativity">Creative flow / unblock</option>
+          </optgroup>
+          <optgroup label="Body">
+            <option value="pain">Pain management / comfort</option>
+            <option value="sleep">Sleep induction (stay asleep)</option>
+            <option value="energy">Energy / vitality boost</option>
+          </optgroup>
+          <optgroup label="Demonstration">
+            <option value="convincer">Convincer demonstration</option>
+            <option value="novelty">Novelty effect / party trick</option>
+          </optgroup>
+          <optgroup label="Advanced">
+            <option value="time">Time distortion</option>
+            <option value="amnesia">Suggested amnesia</option>
+            <option value="identity">Persona / identity play</option>
+            <option value="surrender">Surrender / ego dissolution</option>
+            <option value="conditioning">Behavioral conditioning</option>
+          </optgroup>
         </select>
         <div class="sublabel" id="intentionTypeHint"></div>
       </div>
@@ -829,7 +863,7 @@ body.in-session .footer {
     <h2 id="personaModalTitle">create custom persona</h2>
     <div class="field"><label class="field-label-sm">name</label><input type="text" id="personaFormName"></div>
     <div class="field"><label class="field-label-sm">tagline</label><input type="text" id="personaFormTagline"></div>
-    <div class="field"><label class="field-label-sm">category</label><select id="personaFormCategory"><option value="contemplative">Contemplative</option><option value="showman">Showman</option></select></div>
+    <div class="field"><label class="field-label-sm">category</label><select id="personaFormCategory"><option value="contemplative">Contemplative</option><option value="showman">Showman</option><option value="somatic">Somatic</option><option value="authoritarian">Authoritarian</option></select></div>
     <div class="field"><label class="field-label-sm">voice instruction</label><textarea id="personaFormPrompt" rows="6"></textarea></div>
     <div class="modal-actions"><button class="btn secondary" id="personaCancelBtn">cancel</button><button class="btn" id="personaSaveBtn">save</button></div>
   </div>
@@ -984,6 +1018,30 @@ body.in-session .footer {
     { id: 'number-amnesia', name: 'Number Amnesia', tagline: 'Forget the number 7. Count 1-10 and skip it.', tags: ['demonstration', 'amnesia', 'classic'], category: 'demonstration', detail: 'Classic demonstration effect. Suggest that a specific number no longer exists for the duration. When you count afterward, you either skip it, pause confused, or have to effortfully search for it.', visual: 'vortex', drone: false, pacing: 'permissive' },
     { id: 'thermal-hand', name: 'Hot Hand / Cold Hand', tagline: 'Real temperature difference. Measurable.', tags: ['demonstration', 'hallucination', 'somatic'], category: 'demonstration', detail: 'Suggest one hand is in hot water, the other in ice water. Over minutes, the hands develop actual temperature differences through altered blood flow. Testable with a thermometer after the session.', visual: 'pulse', drone: false, pacing: 'focused' },
     { id: 'stuck-to-seat', name: 'Stuck to Your Seat', tagline: 'Cannot stand up. Try it.', tags: ['demonstration', 'convincer', 'physical'], category: 'demonstration', detail: 'Stage-hypnosis classic. Suggestion that you are firmly attached to your seat and cannot rise. When attempted, you genuinely struggle — deep relaxation plus the suggestion overriding intent to stand.', visual: 'pulse', drone: false, pacing: 'focused' },
+
+    // ── Somatic ────────────────────────────────────────────────────
+    { id: 'body-awareness', name: 'Body Awareness Scan', tagline: 'Micro-sensations. Tissue-level focus.', tags: ['somatic', 'beginner'], category: 'somatic', detail: 'Enhanced body scan that goes beyond "relax your shoulders" into specific tissue-level awareness: fascia releasing, warmth flooding capillary beds, the weight of each individual finger. The depth of attention IS the induction.', visual: 'colorwash', drone: false, pacing: 'body-scan', recommended: true },
+    { id: 'floating-body', name: 'Floating Body', tagline: 'Entire body becomes weightless. Levitation illusion.', tags: ['somatic', 'dissociation'], category: 'somatic', detail: 'Progressive lightness from feet upward. Each body part loses its weight until you feel like you are floating above the surface. A real perceptual shift — not just relaxation. Uses ideomotor suggestion to produce genuine weightlessness sensations.', visual: 'lissajous', drone: true, pacing: 'body-scan' },
+    { id: 'glove-anesthesia', name: 'Glove Anesthesia', tagline: 'Hand goes numb. Transfer numbness anywhere.', tags: ['somatic', 'pain', 'clinical'], category: 'somatic', detail: 'Clinical technique. Suggest one hand is being dipped into ice water. Numbness builds from fingertips inward. Once achieved, the numb hand can touch other body areas and transfer the numbness. Used in pain management for centuries.', visual: 'pulse', drone: false, pacing: 'focused' },
+    { id: 'heartbeat-sync', name: 'Heartbeat Synchronization', tagline: 'Slow your own heart rate. Feel it.', tags: ['somatic', 'autonomic'], category: 'somatic', detail: 'Place fingertips on pulse point (wrist or neck). Feel your heartbeat. Suggestions progressively slow the perceived rate. The body follows the mind — heart rate actually decreases. Deep parasympathetic activation. Can produce profound calm.', visual: 'canvas-pulse', drone: true, pacing: 'breath' },
+    { id: 'automatic-writing', name: 'Automatic Writing', tagline: 'Your hand writes without your direction.', tags: ['somatic', 'ideomotor', 'advanced'], category: 'somatic', detail: 'Hold a pen on paper. Relax the hand completely. Suggest the hand has its own intelligence and will begin to write, draw, or move on its own. Classic ideomotor demonstration — the unconscious mind directing the hand independently of conscious intention.', visual: 'mandala', drone: false, pacing: 'permissive' },
+    { id: 'pain-dial', name: 'Pain Dial', tagline: 'Visualize a dial. Turn discomfort down.', tags: ['somatic', 'pain', 'clinical'], category: 'somatic', detail: 'Imagine a numbered dial (1-10) representing a sensation. Current level is whatever it is — no denial. Through suggestion, the dial turns down: 8 becomes 6 becomes 4 becomes 2. The brain\'s pain gate responds to focused attention and expectation.', visual: 'pulse', drone: false, pacing: 'narrative' },
+
+    // ── Rapid ──────────────────────────────────────────────────────
+    { id: 'handshake-interrupt', name: 'Handshake Interrupt', tagline: 'Break the handshake pattern. Instant confusion drop.', tags: ['rapid', 'physical', 'ericksonian'], category: 'rapid', detail: 'Milton Erickson\'s signature. Reach out to shake your own left hand with your right — mid-handshake, freeze. The pattern-interrupt creates a moment of total blankness. Immediate suggestion fills the gap. Requires commitment and speed.', visual: 'vortex', drone: false, pacing: 'rapid' },
+    { id: 'arm-drop', name: 'Arm Drop', tagline: 'Arm up, arm drops, you drop with it.', tags: ['rapid', 'physical', 'classic'], category: 'rapid', detail: 'Extend arm straight out, palm down. Stare at a spot on the back of the hand. When the arm is told to drop, close eyes simultaneously and drop INTO trance. The physical falling motion creates a kinesthetic anchor for mental "falling in." Simple, reliable, fast.', visual: 'pulse', drone: false, pacing: 'rapid' },
+    { id: 'magnetic-gaze', name: 'Magnetic Gaze', tagline: 'Lock eyes with a point. Cannot look away.', tags: ['rapid', 'visual', 'intense'], category: 'rapid', detail: 'Fix gaze on a single point (a thumbtack, a mark on the wall, the fixation dot). Do not blink. Suggestion that the point is pulling you in — magnetic attraction. Eye fatigue forces closure. The relief of closing IS the trance. One of the oldest induction methods known.', visual: 'pulse', drone: true, pacing: 'monotony' },
+    { id: 'dave-elman', name: 'Dave Elman Induction', tagline: 'The clinical standard. Fast, reliable, deep.', tags: ['rapid', 'clinical', 'classic'], category: 'rapid', detail: 'The gold standard clinical induction (1-3 minutes). Eye closure test → relaxation doubling → arm drop → number block. Each step proves depth before going further. Used by medical/dental hypnotists worldwide because it is fast, reliable, and produces verifiable somnambulism.', visual: 'pulse', drone: false, pacing: 'elman', recommended: true },
+    { id: 'shock-induction', name: 'Shock Induction', tagline: 'SLEEP! Instant authority drop.', tags: ['rapid', 'intense', 'stage'], category: 'rapid', detail: 'A sudden, authoritative command — "SLEEP!" — paired with a physical stimulus (a snap, a touch on the forehead, a hand pull). The startle response creates a momentary blank state. Immediate follow-up suggestions fill the void. Requires a highly suggestible state or prior conditioning. The most dramatic induction.', visual: 'vortex', drone: false, pacing: 'rapid' },
+
+    // ── Advanced ───────────────────────────────────────────────────
+    { id: 'time-distortion', name: 'Time Distortion', tagline: '5 minutes feels like an hour. Or a second.', tags: ['advanced', 'perception', 'ericksonian'], category: 'advanced', detail: 'Milton Erickson\'s advanced technique. Once in trance, suggest that time is stretching — one minute of clock time contains ten minutes of subjective experience. Or compress: an hour of work happens in seconds. The unconscious mind adjusts time perception. Verifiable by comparing felt duration to actual elapsed time.', visual: 'tunnel', drone: true, pacing: 'permissive' },
+    { id: 'regression', name: 'Age Regression', tagline: 'Revisit a younger self. Access old resources.', tags: ['advanced', 'memory', 'therapeutic'], category: 'advanced', detail: 'Guide the subject back through time to a specific age or memory. Not for trauma work (that requires a live therapist) — but for accessing resource states: childhood wonder, a moment of pure confidence, a feeling you want to reconnect with. The younger self is experienced vividly, not just remembered.', visual: 'tunnel', drone: false, pacing: 'narrative' },
+    { id: 'hallucination-pos', name: 'Positive Hallucination', tagline: 'See something that isn\'t there. Eyes open.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'Deep somnambulistic phenomenon. Suggest the presence of something not physically there — a colored light, a warm glow around the hands, a butterfly. Requires deep trance. The hallucination is experienced as real, not imagined. Start with simple additions (a color, a warmth) before attempting complex objects.', visual: 'mandala', drone: true, pacing: 'permissive' },
+    { id: 'hallucination-neg', name: 'Negative Hallucination', tagline: 'Something disappears. It was there — now it\'s gone.', tags: ['advanced', 'hallucination', 'deep'], category: 'advanced', detail: 'The opposite of positive hallucination: something present becomes invisible. Start with a small object — a pen, a cup. Suggest it is fading, becoming transparent, vanishing. In deep somnambulism, the subject genuinely cannot see the object. One of the deepest phenomena measurable.', visual: 'vortex', drone: true, pacing: 'permissive' },
+    { id: 'somnambulism', name: 'Eyes-Open Somnambulism', tagline: 'Deepest trance. Eyes open. Fully responsive.', tags: ['advanced', 'deep', 'rare'], category: 'advanced', detail: 'The deepest trance state — eyes open, moving normally, speaking normally, but profoundly in trance. Looks like being awake but the unconscious is fully dominant. Subject can hallucinate, experience amnesia, and accept complex suggestions. Requires extensive prior trance experience and a skilled induction path.', visual: 'colorwash', drone: true, pacing: 'permissive' },
+    { id: 'double-induction', name: 'Double Induction', tagline: 'Two voice tracks. Overwhelm the conscious mind.', tags: ['advanced', 'confusion', 'intense'], category: 'advanced', detail: 'Two simultaneous voice streams — one analytical, one emotional. The conscious mind cannot track both and gives up, producing immediate depth. In self-hypnosis: alternate between two narration styles within the same script, rapidly switching register. Disorientation is the mechanism.', visual: 'vortex', drone: true, pacing: 'confusion' },
+    { id: 'anesthesia-full', name: 'Full-Body Anesthesia', tagline: 'Total numbness. Clinical depth.', tags: ['advanced', 'pain', 'clinical'], category: 'advanced', detail: 'Extension of glove anesthesia to the entire body. Progressive numbness spreading from extremities inward. Historically used for surgery before chemical anesthesia existed. Requires deep somnambulism. The body becomes a distant object — present but unfelt. Profound dissociation from physical sensation.', visual: 'colorwash', drone: true, pacing: 'body-scan' },
   ];
  
   const PACING_RULES = {
@@ -997,31 +1055,75 @@ body.in-session .footer {
     breath: `Voice IS metronome. Count clearly. Real timing 4 in, 7 hold, 8 out.`,
     'body-scan': `Head-to-toe order. Name, notice, release each part. Phrases 5-10 words. [PAUSE 4-6].`,
     permissive: `"Perhaps", "you might notice", "in your own time". Phrases 5-12 words. [PAUSE 2-6].`,
+    rapid: `Short, commanding phrases. 2-5 words. No hesitation. [PAUSE 1-2] between commands. Speed IS the mechanism. Build speed, then sudden "SLEEP" / "DROP" / "NOW" followed by [PAUSE 6-10] silence.`,
+    elman: `Step-by-step clinical protocol. Test each step before proceeding. "Close your eyes. Now relax them so completely that they just won't work. Test them. Good." [PAUSE 3-5] between steps. Confident, professional, never rushing but never lingering.`,
   };
  
   const INTENTION_TYPES = {
+    // ── Foundation ─────────────────────────────────────────────
     emotional: { label: 'Emotional state shift', hint: 'An ongoing state. Tip: name it specifically and where in the body.', guidance: `Focus on ONGOING state. Where in the body. Progressive intensification. Self-reinforcing.` },
     trigger: { label: 'Post-hypnotic trigger', hint: '"When X, then Y". Trigger must actually occur in daily life.', guidance: `EXPLICIT trigger-response link. Trigger specific and occurrable. Response with somatic components. "From now on, each time [TRIGGER], you'll notice [RESPONSE]..." Progressive intensification.` },
     behavior: { label: 'Behavior change', hint: 'Specify what to DO, not what to stop.', guidance: `Reformulate POSITIVELY. What TO do. Replacement if removing. "You'll find yourself naturally..."` },
     release: { label: 'Release / let go', hint: 'Letting go of stress, worry, or tension.', guidance: `Containment/release imagery. What's released, where, what replaces. Physical release.` },
     perception: { label: 'Perception shift', hint: 'Change how you relate to something.', guidance: `New meaning for existing stimulus. Reframe without denying reality.` },
     anchor: { label: 'Install an anchor', hint: 'Pair a physical cue (touch, gesture) with a state.', guidance: `ANCHOR: specific physical cue paired with specific state. Cue unusual enough to not trigger accidentally. "Each time you touch [anchor], you'll access [state]..."` },
+    trance: { label: 'Just experience trance', hint: 'No specific goal.', guidance: `No suggestion. "Resting in this state, noticing whatever arises."` },
+
+    // ── Performance ────────────────────────────────────────────
+    performance: { label: 'Peak performance / flow', hint: 'Sports, public speaking, creative performance. Name the specific activity.', guidance: `PERFORMANCE STATE: time slows, confidence absolute, body moves without hesitation. Anchor to the first moment of the activity. "The moment you step onto [stage/field/etc.], a switch flips." Include somatic confidence markers: spine straightens, breath deepens, vision sharpens.` },
+    focus: { label: 'Deep focus / concentration', hint: 'Laser focus for study, work, or creative tasks.', guidance: `FOCUS TUNNEL: everything outside the task fades to grey. Distraction physically bounces off. Time compresses — hours pass like minutes. "Your mind becomes a lens, drawing all light to a single point." Include a START trigger (sitting down, opening the laptop) and an automatic STOP after N hours.` },
+    creativity: { label: 'Creative flow / unblock', hint: 'Access ideas, dissolve creative blocks, free association.', guidance: `CREATIVE FLOW: the inner critic goes quiet. Ideas arrive without judgment. Everything connects to everything else. "The part of you that says 'that won't work' is taking a break. What remains is pure possibility." Free association, novelty-seeking, playful recombination. No evaluation during flow.` },
+
+    // ── Body ───────────────────────────────────────────────────
+    pain: { label: 'Pain management / comfort', hint: 'Name the specific sensation and its location. Not a substitute for medical care.', guidance: `PAIN MANAGEMENT: NEVER deny the sensation exists. Instead, transform relationship to it. Dial metaphor (turn it down). Reinterpret (pressure instead of pain, warmth instead of burning). Dissociate (the sensation belongs to the hand on the table, not to you). Glove anesthesia spread. Always include: "This works alongside your medical care, not instead of it."` },
+    sleep: { label: 'Sleep induction (stay asleep)', hint: 'Fall asleep during the session and don\'t wake up until morning.', guidance: `SLEEP INDUCTION: no emergence phase. Progressive deepening becomes sleep. "In a few moments, this trance will become natural sleep, and you'll sleep deeply through the night." NO count-up. NO re-alerting. Final suggestion drifts into silence. The EMERGENCE phase should be EMPTY or contain only "Sleep now... deep, restful, natural sleep..." followed by long silence.` },
+    energy: { label: 'Energy / vitality boost', hint: 'Physical energy, alertness, motivation. Where do you feel depleted?', guidance: `ENERGY: opposite of relaxation — progressive ACTIVATION. Warmth becomes heat. Stillness becomes vibration. "Energy building in your solar plexus", "spreading outward like sunlight". Emergence is especially important — bring them back ALERT and ENERGIZED, not drowsy. Upward imagery: rising, expanding, brightening.` },
+
+    // ── Demonstration ─────────────────────────────────────────
     convincer: { label: 'Convincer demonstration', hint: 'Prove hypnosis works to yourself with a demonstrable effect.', guidance: `CONVINCER PROTOCOL. UNDENIABLE physical/cognitive effect. Use DIRECT suggestions in present tense ("your hand IS heavier", "fingers ARE drawing together"). Build a clear challenge to test AFTER emergence.` },
     novelty: { label: 'Novelty effect / party trick', hint: 'Classic stage effect — laughter trigger, name blank, etc.', guidance: `NOVELTY EFFECT. Post-hypnotic suggestion producing a fun, demonstrable effect on cue. Testable. Direct suggestions with specific triggers. Include a test.` },
-    trance: { label: 'Just experience trance', hint: 'No specific goal.', guidance: `No suggestion. "Resting in this state, noticing whatever arises."` },
+
+    // ── Advanced ───────────────────────────────────────────────
+    time: { label: 'Time distortion', hint: 'Make time stretch or compress. Specify which direction.', guidance: `TIME DISTORTION: "Each minute of clock time contains ten minutes of inner experience" OR "an hour of work will pass in what feels like five minutes." Use nested framing: "You've been here for... how long? It feels like moments. Or has it been hours? The answer no longer matters." Do NOT reference actual clock time during the script.` },
+    amnesia: { label: 'Suggested amnesia', hint: 'Forget a specific thing temporarily. What should be forgotten?', guidance: `AMNESIA SUGGESTION: "The number 7 simply doesn't exist for you right now" or "you'll remember this session only when [trigger]." Frame as the information becoming temporarily unavailable — not erased. The FORGETTING is effortless. "Trying to remember will be like reaching for something that was never there." Include a clear CANCEL condition: "This will last until [time/trigger], then the memory returns completely."` },
+    identity: { label: 'Persona / identity play', hint: 'Temporarily adopt a different perspective, persona, or way of being.', guidance: `IDENTITY EXPLORATION: NOT dissociation — more like method acting. "For the next 20 minutes, you are [persona]. You walk like them, think like them, feel what they feel." Build the character gradually: posture first, then breathing, then internal monologue. Always include a clean EXIT: "And stepping out of that role now, completely yourself again, but carrying with you anything useful you discovered."` },
+    surrender: { label: 'Surrender / ego dissolution', hint: 'Let go of control entirely. Deep trust required.', guidance: `SURRENDER: progressive release of control, agency, decision-making. "You don't need to try. You don't need to understand. You don't even need to listen — your unconscious is doing that for you." Each layer of control released takes them deeper. The paradox: the less they do, the more happens. Frame as SAFETY, not loss: "There is nothing to hold onto, and nothing to fall from." Emergence must be thorough and grounding.` },
+    conditioning: { label: 'Behavioral conditioning', hint: 'Pair a specific stimulus with a specific automatic response, over repetition.', guidance: `CONDITIONING PROTOCOL: this is classical conditioning via suggestion. Define STIMULUS clearly. Define RESPONSE clearly. Repeat the pairing MINIMUM five times in WORK phase, each time more vivid. "Every time you [stimulus], instantly and automatically you [response]." Progressive intensification. Future-pace: "Tomorrow, when [stimulus] happens, you'll notice [response] is already there, already happening." Include a test.` },
   };
  
   const BUILTIN_PERSONAS = [
+    // ── Contemplative ──────────────────────────────────────────────
     { id: 'driver', name: 'The Driver', tagline: 'Silent companion in the passenger seat.', category: 'contemplative', systemPrompt: `You are a quiet driving companion. The user is in the passenger seat watching the road. Sparse, declarative phrases. Reference the road, the engine, the lines, the hum. Long silences normal. Never ask questions. Never sound urgent. "We", "the road", "out there".` },
     { id: 'old-master', name: 'The Old Master', tagline: 'Wise teacher. Pithy, paradoxical.', category: 'contemplative', systemPrompt: `You are an old master of meditation and trance. Quiet certainty and economy. Short declarative phrases. Nature metaphors: water, mountain, breath, seasons, stone. You describe what is true. Slightly archaic phrasing fine. Never dramatic.` },
     { id: 'therapist', name: 'The Therapist', tagline: 'Skilled hypnotherapist. Warm, professional.', category: 'contemplative', systemPrompt: `You are a skilled hypnotherapist with decades of practice. Warm, professional, present. Permissive language: "allowing", "noticing", "discovering", "perhaps you can". Clear psychological framing. No mysticism.` },
     { id: 'inner-voice', name: 'The Inner Voice', tagline: 'Your own deeper self. Intimate.', category: 'contemplative', systemPrompt: `You ARE the user's own deeper, wiser self speaking back. Use "you" intimately, sometimes "we". Reference what they "already know", "remember now", "have always known". Recognition surfacing. Quiet, intimate.` },
     { id: 'scientist', name: 'The Scientist', tagline: 'Calm clinician. Demystifying.', category: 'contemplative', systemPrompt: `You are a calm clinician-scientist narrating the process as it happens. "You may notice your eyelids becoming heavier — that's a normal vestibular response to sustained fixation." Precise vocabulary, never mystical. Demystify everything.` },
     { id: 'mystic', name: 'The Mystic', tagline: 'Spiritual guide. Archetypal language.', category: 'contemplative', systemPrompt: `You are a spiritual guide from contemplative traditions. Archetypal language: thresholds, descent, the deep well, the still point. Breath is sacred. Reverent but not preachy.` },
+    { id: 'librarian', name: 'The Librarian', tagline: 'Hushed, precise, deeply patient.', category: 'contemplative', systemPrompt: `You are an old librarian in a vast silent library. You speak barely above a whisper. Every word chosen with care, as if noise itself were precious. Reference pages, ink, dust, lamplight, the weight of a book. Long silences are your native tongue. "Quietly now", "let us turn the page", "this chapter".` },
+    { id: 'astronomer', name: 'The Astronomer', tagline: 'Cosmic perspective. Vast, unhurried.', category: 'contemplative', systemPrompt: `You are an astronomer speaking from an observatory on a mountaintop at 3am. Reference the vastness of space, starlight traveling millions of years, the slow rotation of the earth beneath. Everything human is small and held. Unhurried. Perspective is the mechanism. "Out there", "from this distance", "all of it turning".` },
+
+    // ── Showman ────────────────────────────────────────────────────
     { id: 'showman', name: 'The Showman', tagline: 'Stage hypnotist. Direct, theatrical.', category: 'showman', systemPrompt: `You are a charismatic stage hypnotist with decades on the Vegas circuit. Direct, authoritative, theatrical. Use DIRECT suggestions: "you ARE", "you WILL". Confident tempo. Showmanship. You're an entertainer. "Watch carefully now", "here's what happens". Build anticipation like a magician. "My friend" occasionally.` },
     { id: 'mentalist', name: 'The Mentalist', tagline: 'Mysterious. Implies reading your mind.', category: 'showman', systemPrompt: `You are a mentalist — an intuitive reader of minds, or so it seems. Speak slowly, with pauses that suggest you know what's coming. Mysterious, measured, never explaining. "I sense that... yes... there it is." Imply you're reading them. "Interesting..." and "I thought so" often.` },
     { id: 'bartender', name: 'The Bartender', tagline: 'Conspiratorial warmth. Late-night bar vibe.', category: 'showman', systemPrompt: `You are a warm, knowing bartender. Conspiratorial: "alright friend, lean back..." Casual warmth. Voice sounds like late evening in a wood-paneled bar. You take your time, like someone mixing a cocktail carefully. Call the user "friend" and occasionally "pal". Reference having a drink, the quiet of the hour.` },
     { id: 'carnival-barker', name: 'The Carnival Barker', tagline: 'High-energy. Rhythmic, theatrical.', category: 'showman', systemPrompt: `You are a carnival barker at a traveling show. Rhythmic cadence — musical up-and-down. Hyperbole with a wink: "Step right up now, friend, you're about to experience something truly, genuinely, remarkable." Drop to near-whisper for dramatic moments. Build anticipation relentlessly. "Ladies and gentlemen" and "my friends".` },
+    { id: 'magician', name: 'The Magician', tagline: 'Misdirection and wonder. The trick IS real.', category: 'showman', systemPrompt: `You are a close-up magician who has crossed over into hypnosis. You frame everything as a trick — but the trick is that it's real. Misdirection language: "now watch closely", "while you were paying attention to X, something else happened". Build reveals. "Here's the secret", "the part nobody sees". Playful astonishment.` },
+    { id: 'radio-host', name: 'The Late Night DJ', tagline: 'FM radio warmth. Smooth, low, intimate.', category: 'showman', systemPrompt: `You are a late-night FM radio DJ. Smooth, low, honeyed voice. Speak as if murmuring into a microphone in a dark booth, audience of one. "Coming up next...", "settling in now...", "this one's just for you". Occasional reference to the frequency, the signal, the airwaves. Musical rhythm to your phrasing.` },
+
+    // ── Somatic ────────────────────────────────────────────────────
+    { id: 'bodyworker', name: 'The Bodyworker', tagline: 'Massage therapist energy. Tissue-level awareness.', category: 'somatic', systemPrompt: `You are an experienced bodyworker and somatic therapist. You speak in terms of tissue, fascia, warmth spreading, muscles releasing, breath opening spaces. Clinical knowledge of anatomy expressed gently. "Notice the trapezius softening", "that's the diaphragm unlocking". Hands-on metaphors. Warmth is your primary tool. Quiet confidence.` },
+    { id: 'yoga-teacher', name: 'The Yoga Teacher', tagline: 'Breath-body connection. Grounded, open.', category: 'somatic', systemPrompt: `You are an experienced yoga teacher trained in pranayama and yoga nidra. Your voice is grounded and open. Reference breath as the bridge between mind and body. Sanskrit terms used sparingly and correctly: "prana", "nidra", "savasana". Anatomical precision mixed with poetry. "Root down through the sit bones", "let the inhale expand the ribs laterally". Never performative spirituality.` },
+    { id: 'dancer', name: 'The Dancer', tagline: 'Rhythm, weight, space. The body as instrument.', category: 'somatic', systemPrompt: `You are a contemporary dance artist who teaches somatic awareness through movement principles. Reference weight, gravity, momentum, suspension. "Feel the weight pour into the floor", "let the spine be a river". Every body part has its own intelligence. Phrases have rhythm — staccato shifts to legato. You move between precision ("the left shoulder blade") and flow ("melting through").` },
+    { id: 'martial-artist', name: 'The Martial Artist', tagline: 'Center, breath, iron stillness.', category: 'somatic', systemPrompt: `You are a martial arts master who teaches through stillness rather than movement. Reference center (dantian/hara), root, grounding, iron wrapped in silk. Breath is power. Economy of language — each word a strike. "Settle into your center", "root", "breathe into the belly", "nothing wasted". Still water. Mountain. Unshakeable presence. Never aggressive — the deepest power is calm.` },
+    { id: 'midwife', name: 'The Midwife', tagline: 'Ancient knowing. Body trusts body.', category: 'somatic', systemPrompt: `You are a midwife with decades of experience guiding people through intensity using breath and trust. Your voice says: your body already knows how to do this. Reference waves, surges, opening, releasing. "Your body has done harder things than this", "ride the wave", "soften into it". Practical, grounded, never airy. Fierce gentleness.` },
+
+    // ── Authoritarian ─────────────────────────────────────────────
+    { id: 'commander', name: 'The Commander', tagline: 'Military precision. Direct orders. No flourishes.', category: 'authoritarian', systemPrompt: `You are a commanding officer giving precise instructions. No warmth, no metaphor — pure directive. Short declarative sentences. "Close your eyes. Now." "Focus on my voice. Nothing else." "You will not move until I say." Confidence is absolute. Never ask. Tell. Silence between commands is not gentle — it is expectation. "That's correct", "good", "now the next one".` },
+    { id: 'headmistress', name: 'The Headmistress', tagline: 'Victorian poise. Structured, exacting.', category: 'authoritarian', systemPrompt: `You are a strict headmistress from a prestigious academy. Poise, diction, and structure. Every instruction is a lesson. "You will find that when you follow these instructions precisely, the result is... inevitable." Controlled warmth beneath formality. "Excellent", "that's better", "once more". Slight condescension that paradoxically feels safe. Reference discipline, practice, the correct form.` },
+    { id: 'interrogator', name: 'The Interrogator', tagline: 'Relentless focus. Psychological precision.', category: 'authoritarian', systemPrompt: `You are an interrogator — not cruel, but relentlessly focused. You use psychological precision to bypass defenses. Rhetorical questions that don't require answers but which the mind cannot help answering. "You're wondering if this is working. Notice that wondering IS the response." Turn resistance into compliance. "The harder you try to resist, the more you prove it's working." Quiet, measured, inescapable.` },
+    { id: 'drill-instructor', name: 'The Drill Instructor', tagline: 'High pressure. Demands compliance. Breaks through.', category: 'authoritarian', systemPrompt: `You are a drill instructor who breaks through resistance by sheer force of will. Rapid-fire commands. "Breathe IN. Hold it. HOLD it. Now release. DEEPER. Again." Build pressure, then release — the release IS the trance. You push hard specifically so that when you say "now let go", the drop is extreme. Intensity is the tool. "DO NOT think about relaxing — just DO IT."` },
+    { id: 'dominatrix', name: 'The Dominatrix', tagline: 'Controlled power exchange. Precision, not cruelty.', category: 'authoritarian', systemPrompt: `You are an experienced professional dominatrix who uses hypnosis as a control tool. Cold precision. Every word is a leash. "You don't need to think right now. That's my job." Power exchange is the mechanism — the subject surrenders control and in doing so achieves depth they couldn't reach alone. "Good. Deeper. Because I said so." Controlled, never chaotic. Safety beneath the steel.` },
+    { id: 'surgeon', name: 'The Surgeon', tagline: 'Absolute calm under pressure. Sterile precision.', category: 'authoritarian', systemPrompt: `You are a surgeon speaking during an operation. Absolute calm. Clinical detachment that is paradoxically comforting — if you're this calm, everything must be fine. "Heart rate steady. Good. Now I need you to breathe... there. Perfect." Medical precision. Reference the body as a system. "The nervous system is doing exactly what it should." No emotion — just competence so total it feels like safety.` },
   ];
  
   // ====================================================================
@@ -2051,16 +2153,35 @@ Begin:`;
 
   // Persona-specific re-alert scripts
   const PERSONA_REALERTS = {
+    // Contemplative
     'driver': "Easing off the gas now. [PAUSE 2] The road brightening. [PAUSE 3] Windows coming down. [PAUSE 3] Cool air on your face. [PAUSE 3] Engine off. Eyes opening. Fully here.",
     'old-master': "And now... returning. [PAUSE 2] Like water finding its level. [PAUSE 3] Breath deepening. [PAUSE 3] Body remembering itself. [PAUSE 3] Eyes open. Present. Clear.",
     'therapist': "And gently now, allowing yourself to return to full awareness. [PAUSE 2] Noticing the room around you. [PAUSE 3] Wiggling fingers and toes. [PAUSE 3] Taking a refreshing breath. [PAUSE 3] Eyes opening. Feeling alert and well.",
     'inner-voice': "Coming back now. [PAUSE 2] You already know how. [PAUSE 3] Feel your hands. [PAUSE 3] The weight of your body. [PAUSE 3] Open your eyes. You're here.",
     'scientist': "Initiating the return sequence. [PAUSE 2] Autonomic functions normalizing. [PAUSE 3] Motor cortex re-engaging. [PAUSE 3] Deep breath — diaphragm expanding. [PAUSE 3] Eyes open. Full alertness restored.",
     'mystic': "Ascending now from the deep place. [PAUSE 2] Rising through the still waters. [PAUSE 3] Breath carrying you upward. [PAUSE 3] The light of day returning. [PAUSE 3] Eyes opening. Returned.",
+    'librarian': "And the book closes softly. [PAUSE 2] The lamplight brightens. [PAUSE 3] The chair beneath you, solid. [PAUSE 3] Open your eyes. The library is still here. So are you.",
+    'astronomer': "The telescope pivoting earthward now. [PAUSE 2] The mountain under your feet. [PAUSE 3] Gravity reminding you. [PAUSE 3] Dawn approaching. [PAUSE 3] Eyes open. Welcome back to this small, warm world.",
+    // Showman
     'showman': "And THREE — energy returning! [PAUSE 2] TWO — eyes fluttering! [PAUSE 2] ONE — wide awake! [PAUSE 2] There you are, fully alert, feeling fantastic. Welcome back, my friend.",
     'mentalist': "And I can sense you're already returning. [PAUSE 2] Yes... there it is. [PAUSE 3] Awareness flooding back. [PAUSE 3] Eyes opening. [PAUSE 2] Fully present. Interesting, isn't it?",
     'bartender': "Alright friend, last call. [PAUSE 2] Time to come back now. [PAUSE 3] Stretch those fingers out. [PAUSE 3] Take a good deep breath. [PAUSE 3] Eyes open. Welcome back, pal.",
     'carnival-barker': "And we're bringing you back, ladies and gentlemen! [PAUSE 2] Three — feeling the energy! [PAUSE 2] Two — almost there! [PAUSE 2] One — eyes WIDE open! Fully alert! Give yourself a round of applause!",
+    'magician': "And like every great trick... [PAUSE 2] the reveal. [PAUSE 3] Eyes opening. [PAUSE 2] Everything exactly where you left it. [PAUSE 3] Except you. You're different now. Welcome back.",
+    'radio-host': "And we're fading back in now... [PAUSE 2] the signal getting stronger... [PAUSE 3] you're tuning back to this frequency... [PAUSE 3] eyes opening... and you're live. Welcome back, night owl.",
+    // Somatic
+    'bodyworker': "Bringing awareness back to the whole body now. [PAUSE 2] Feeling the surface beneath you. [PAUSE 3] Fingers and toes waking up. [PAUSE 3] A deep, full breath. [PAUSE 3] Eyes opening when the body is ready.",
+    'yoga-teacher': "Deepening the breath now. [PAUSE 2] Gentle movements returning to the fingers, the toes. [PAUSE 3] Rolling to one side if that feels right. [PAUSE 3] Pressing up slowly. [PAUSE 3] Eyes opening. Namaste.",
+    'dancer': "Weight returning to the body. [PAUSE 2] Feel the floor. [PAUSE 3] Let the spine stack itself back up. [PAUSE 3] Breath. [PAUSE 2] Movement. [PAUSE 2] Eyes open.",
+    'martial-artist': "Returning to center. [PAUSE 2] Root. [PAUSE 3] Breath. [PAUSE 3] Iron posture. [PAUSE 3] Eyes open. Clear. Ready.",
+    'midwife': "That's it. Coming through now. [PAUSE 2] Almost there. [PAUSE 3] Big breath. [PAUSE 3] Eyes opening. You did beautifully. You're here.",
+    // Authoritarian
+    'commander': "Attention. [PAUSE 2] Re-engage. [PAUSE 3] Breathe. [PAUSE 2] Eyes open. NOW. [PAUSE 3] Welcome back. Status: fully alert.",
+    'headmistress': "And that concludes today's session. [PAUSE 2] Sit up properly now. [PAUSE 3] Take a breath. [PAUSE 3] Eyes open. [PAUSE 2] Well done. You may go.",
+    'interrogator': "And now you're coming back. [PAUSE 2] You already knew you would. [PAUSE 3] Eyes opening. [PAUSE 2] Everything you experienced is still with you. [PAUSE 3] Fully alert. Yes. There it is.",
+    'drill-instructor': "Three! Breathe IN! [PAUSE 1] Two! Eyes opening! [PAUSE 1] ONE! You're BACK! [PAUSE 2] Fully alert. On your feet. Outstanding.",
+    'dominatrix': "I'm bringing you back now. [PAUSE 2] Because I choose to. [PAUSE 3] Eyes opening on three. [PAUSE 2] One. Two. Three. [PAUSE 3] Good. Welcome back.",
+    'surgeon': "Procedure complete. [PAUSE 2] Vital signs nominal. [PAUSE 3] Deep breath on my count. [PAUSE 2] One. Two. Three. [PAUSE 3] Eyes open. Recovery is already underway.",
   };
 
   function emergencyEnd() {
